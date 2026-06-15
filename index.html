@@ -2807,6 +2807,42 @@ async function submitAnnonce() {
   else init();
 })();
 </script>
-<script src="/v5-messagerie.js"></script>
+<script src="/v5-messagerie.js"></script><script>
+/* Correctif chargement pitmasters réels — différé après init complète */
+(function(){
+  function tryLoadReal(attempt){
+    attempt = attempt || 0;
+    // On attend que sb, le tableau et le rendu soient prêts
+    if(typeof sb === 'undefined' || typeof pitmasters === 'undefined' || typeof renderPM !== 'function'){
+      if(attempt < 20){ return setTimeout(()=>tryLoadReal(attempt+1), 300); }
+      return; // abandon après ~6s
+    }
+    sb.from('pitmasters').select('*').eq('actif', true)
+      .order('created_at', { ascending:false })
+      .then(({data, error})=>{
+        if(error || !data || !data.length) return;
+        const existing = new Set(pitmasters.map(p=>(p.name||'').toLowerCase()));
+        const av = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12'];
+        data.forEach((row,i)=>{
+          if(existing.has((row.nom||'').toLowerCase())) return;
+          const prix = parseInt((row.tarif||'').replace(/[^0-9]/g,'')) || 100;
+          pitmasters.push({
+            init:(row.nom||'?').trim()[0].toUpperCase(),
+            av:av[(pitmasters.length+i)%av.length],
+            name:row.nom, ville:row.ville||'France',
+            spec:row.specialite||'BBQ à domicile',
+            stars:'★★★★★', rating:5.0, rev:0, prix:prix, dispo:true,
+            desc:row.description||'Expert BBQ disponible pour vos événements.',
+            tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>s.trim()).filter(Boolean).slice(0,5),
+            avis:[], _real:true, _email:row.email, _id:row.id
+          });
+        });
+        renderPM();
+      });
+  }
+  if(document.readyState === 'complete'){ tryLoadReal(); }
+  else { window.addEventListener('load', ()=>setTimeout(tryLoadReal, 500)); }
+})();
+</script>
 </body>
 </html>
