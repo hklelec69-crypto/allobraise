@@ -985,7 +985,7 @@ const EMAILJS_TEMPLATE_CONTACT = 'template_m9blhzg';
 const EMAILJS_TEMPLATE_INSCRIPTION = 'template_m9blhzg';
 const EMAILJS_TEMPLATE_ANNONCE = 'template_m9blhzg';
 const ADMIN_EMAIL = 'a.hamtine@hotmail.fr';
-try { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e) {}
+try { if(typeof emailjs!=='undefined') emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e) { console.error('EmailJS init failed:', e); }
 
 const pitmasters=[
   {init:"R",av:"a1",name:"Le Gros Fumeur",ville:"Paris",spec:"Charbon & fumoir Texas",stars:"★★★★★",rating:4.9,rev:34,prix:150,dispo:true,desc:"Passionné de BBQ depuis plus de 10 ans, je me déplace chez vous avec tout mon matériel. Spécialiste côtes levées et pulled pork façon Texas. Je couvre Paris et l'Île-de-France.",tags:["Charbon","Fumoir","Pulled pork","Ribs","Matériel inclus"],avis:[{a:"Sophie M.",s:"★★★★★",t:"Incroyable soirée ! Le pulled pork était fondant, tout le monde a adoré.",d:"Juin 2025"},{a:"Thomas R.",s:"★★★★★",t:"Parfait pour notre anniversaire. Très professionnel.",d:"Mai 2025"},{a:"Laura B.",s:"★★★★☆",t:"Super prestation, BBQ délicieux. On recommande !",d:"Avril 2025"}]},
@@ -1054,17 +1054,18 @@ document.getElementById('grid-ann').innerHTML=annonces.map((a,i)=>`
 </div>`).join('');
 
 // SCROLL REVEAL
+let _revealObserver=null;
 function initReveal(){
-  const els=document.querySelectorAll('.reveal,.reveal-scale');
-  const io=new IntersectionObserver((entries)=>{
+  if(_revealObserver) _revealObserver.disconnect();
+  _revealObserver=new IntersectionObserver((entries)=>{
     entries.forEach((e,i)=>{
       if(e.isIntersecting){
         setTimeout(()=>e.target.classList.add('visible'),i*60);
-        io.unobserve(e.target);
+        _revealObserver.unobserve(e.target);
       }
     });
   },{threshold:0.1});
-  els.forEach(el=>io.observe(el));
+  document.querySelectorAll('.reveal,.reveal-scale').forEach(el=>_revealObserver.observe(el));
 }
 
 // ── INIT ──
@@ -1072,10 +1073,18 @@ renderPM();
 initReveal();
 
 // ── PARALLAX HERO ──
-window.addEventListener('scroll',()=>{
-  const bg=document.getElementById('hero-bg');
-  if(bg) bg.style.transform=`translateY(${window.scrollY*0.3}px)`;
-});
+(function(){
+  let rafPending=false;
+  window.addEventListener('scroll',()=>{
+    if(rafPending)return;
+    rafPending=true;
+    requestAnimationFrame(()=>{
+      const bg=document.getElementById('hero-bg');
+      if(bg) bg.style.transform=`translateY(${window.scrollY*0.3}px)`;
+      rafPending=false;
+    });
+  },{passive:true});
+})();
 
 // ── CONTACT PROFIL ──
 document.addEventListener('click', function(e) {
@@ -1092,7 +1101,7 @@ document.addEventListener('click', function(e) {
       to_email: ADMIN_EMAIL, from_name: prenom, from_email: email,
       pitmaster: pitName, date_event: date||'Non précisé',
       personnes: pers||'Non précisé', message, reply_to: email
-    }).catch(()=>{});
+    }).catch(e=>console.error('EmailJS contact send failed:',e));
     setTimeout(() => {
       const sticky = document.querySelector('.profil-sticky');
       if (sticky) sticky.innerHTML = `<div class="form-success">
@@ -1129,8 +1138,9 @@ function showProfil(idx){
   document.getElementById('profil-dispo').innerHTML=p.dispo?'<span style="color:#22C55E;display:flex;align-items:center;gap:5px"><div style="width:6px;height:6px;border-radius:50%;background:#22C55E;animation:pulse-dot 2s infinite"></div>Disponible</span>':'<span style="color:var(--muted)">Indisponible</span>';
   document.getElementById('profil-price').textContent=p.prix+'€';
   document.getElementById('profil-desc').textContent=p.desc;
-  document.getElementById('profil-tags').innerHTML=p.tags.map(t=>`<span class="profil-tag">${t}</span>`).join('');
-  document.getElementById('profil-avis').innerHTML=p.avis.map(a=>`<div class="avis-item"><div class="avis-top"><span class="avis-author">${a.a}</span><span class="avis-stars">${a.s}</span></div><div class="avis-text">${a.t}</div><div class="avis-date">${a.d}</div></div>`).join('');
+  const _ep=window.escHTML||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
+  document.getElementById('profil-tags').innerHTML=p.tags.map(t=>`<span class="profil-tag">${_ep(t)}</span>`).join('');
+  document.getElementById('profil-avis').innerHTML=p.avis.map(a=>`<div class="avis-item"><div class="avis-top"><span class="avis-author">${_ep(a.a)}</span><span class="avis-stars">${_ep(a.s)}</span></div><div class="avis-text">${_ep(a.t)}</div><div class="avis-date">${_ep(a.d)}</div></div>`).join('');
   document.getElementById('btn-chat-profil').onclick=()=>startConversation(idx);
   showPage('profil');
 }
@@ -1397,7 +1407,7 @@ function renderChat(name, init, av, dispo, suggs) {
       <div class="chat-avatar ${av}">${init}</div>
       <div class="chat-info">
         <div class="chat-name">${name}</div>
-        <div class="chat-status"><div class="chat-status-dot"></div>${dispo ? 'En ligne · Répond avec IA' : 'Hors ligne'}</div>
+        <div class="chat-status"><div class="chat-status-dot"></div>${dispo ? 'En ligne · Répond rapidement' : 'Hors ligne'}</div>
       </div>
       <button class="chat-close" onclick="closeChat()">✕</button>
     </div>
@@ -1416,9 +1426,10 @@ function renderChat(name, init, av, dispo, suggs) {
 function refreshMsgs() {
   const el = document.getElementById('chat-msgs');
   if (!el) return;
+  const _esc = window.escHTML || (s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
   el.innerHTML = chatMessages.map(m =>
     `<div style="display:flex;flex-direction:column;align-items:${m.from === 'me' ? 'flex-end' : 'flex-start'}">
-      <div class="msg msg-${m.from === 'me' ? 'me' : 'them'}">${m.text}<div class="msg-time">${m.time}</div></div>
+      <div class="msg msg-${m.from === 'me' ? 'me' : 'them'}">${_esc(m.text)}<div class="msg-time">${_esc(m.time)}</div></div>
     </div>`
   ).join('');
   el.scrollTop = el.scrollHeight;
@@ -1584,10 +1595,6 @@ async function loginGoogle() {
 function closeModal() { document.getElementById('modal-wrap').classList.remove('open'); }
 document.getElementById('modal-wrap').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
 
-function fakeLogin() {
-  // Remplacé par vraie auth Supabase
-  submitLogin();
-}
 
 async function submitLogin() {
   const email = document.getElementById('m-email')?.value.trim();
@@ -1680,7 +1687,7 @@ async function submitPitmaster() {
       message: desc,
       reply_to: email
     });
-  } catch(e) {}
+  } catch(e) { console.error('EmailJS pitmaster notification failed:',e); }
   // Ajout visuel live sur le site
   const initials = nom.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
   const avColors = ['a1','a2','a3','a4','a5','a6'];
