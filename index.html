@@ -2814,5 +2814,574 @@ async function submitAnnonce() {
   else { window.addEventListener('load', ()=>setTimeout(tryLoadReal, 500)); }
 })();
 </script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ALLO BRAISE — MODULE V6 : ESPACE PITMASTER DASHBOARD
+     Profil éditable · Disponibilité · Demandes · Messages · Avis
+══════════════════════════════════════════════════════════════ -->
+<style>
+/* ── V6 : DASHBOARD PITMASTER ── */
+#page-pitmaster-dashboard{background:var(--bg);min-height:100vh}
+.pm-nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(255,255,255,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}
+.pm-nav-logo{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.pm-hero{background:var(--dark);padding:2.5rem 2rem;position:relative;overflow:hidden}
+.pm-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=1200&q=40') center/cover;opacity:0.08;pointer-events:none}
+.pm-hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:1;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.pm-avatar{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:2.2rem;font-style:italic;flex-shrink:0;border:3px solid rgba(255,255,255,0.2)}
+.pm-hero-info{flex:1;min-width:180px}
+.pm-hello{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:4px}
+.pm-htitle{font-family:'Fraunces',serif;font-size:1.9rem;color:white;line-height:1.1}
+.pm-hspec{font-size:14px;color:rgba(255,255,255,0.55);margin-top:4px;margin-bottom:14px}
+.pm-stats{display:flex;gap:10px;flex-wrap:wrap}
+.pm-stat{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.55rem 0.9rem;text-align:center;min-width:65px}
+.pm-sn{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--fire3);line-height:1;display:block}
+.pm-sl{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;display:block;text-transform:uppercase;letter-spacing:1px}
+.pm-avail-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:1.1rem 1.3rem;text-align:center;min-width:148px;flex-shrink:0}
+.pm-avail-lbl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:10px}
+.pm-avail-btn{display:flex;align-items:center;gap:8px;justify-content:center;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.25s;width:100%;border:1px solid}
+.pm-avail-btn.on{background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.5);color:#4ADE80}
+.pm-avail-btn.off{background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.35);color:#A78BFA}
+.pm-avdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pm-avail-btn.on .pm-avdot{background:#22C55E;animation:pulse-dot 2s ease-in-out infinite}
+.pm-avail-btn.off .pm-avdot{background:#A78BFA}
+.pm-avsub{font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px;line-height:1.4}
+/* Tabs */
+.pm-tabs-wrap{background:var(--card);border-bottom:1px solid var(--border)}
+.pm-tabs{max-width:900px;margin:0 auto;display:flex;padding:0 2rem;overflow-x:auto;scrollbar-width:none}
+.pm-tabs::-webkit-scrollbar{display:none}
+.pm-tab{flex-shrink:0;padding:1rem 1.1rem;font-size:13px;font-weight:500;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s;white-space:nowrap}
+.pm-tab.active{color:var(--fire);border-bottom-color:var(--fire)}
+.pm-tab:hover:not(.active){color:var(--dark)}
+.pm-tab-badge{background:var(--fire);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;line-height:1.6}
+/* Body */
+.pm-body{max-width:900px;margin:0 auto;padding:2rem}
+.pm-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem}
+.pm-shead{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.pm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:580px){.pm-grid2{grid-template-columns:1fr}}
+.pm-btn{display:inline-flex;align-items:center;gap:6px;padding:0.75rem 1.5rem;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none;text-decoration:none}
+.pm-btn-fire{background:var(--fire);color:#fff}.pm-btn-fire:hover{background:var(--fire2);transform:translateY(-1px)}
+.pm-btn-dark{background:var(--dark);color:#fff}.pm-btn-dark:hover{background:#2A1F14;transform:translateY(-1px)}
+.pm-btn-green{background:#2A7A2A;color:#fff}.pm-btn-green:hover{background:#1E6A1E}
+.pm-btn-wa{background:#25D366;color:#fff}.pm-btn-wa:hover{background:#1EA952}
+.pm-btn-outline{background:none;border:1px solid var(--border);color:var(--muted)}.pm-btn-outline:hover{border-color:var(--dark);color:var(--dark)}
+.pm-btn-fire-out{background:none;border:1px solid var(--fire);color:var(--fire)}.pm-btn-fire-out:hover{background:var(--fire);color:#fff}
+.pm-btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+/* Demandes */
+.pm-demande{border:1px solid var(--border);border-radius:10px;padding:1.1rem;margin-bottom:0.8rem;background:var(--bg2);transition:border-color 0.2s}
+.pm-demande:hover{border-color:rgba(212,66,10,0.3)}
+.pm-dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.pm-dclient{font-weight:600;font-size:14px}
+.pm-status{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;flex-shrink:0}
+.pm-s-att{background:#FFFAE8;color:#B07010}
+.pm-s-acc{background:#EAF5EA;color:#2A7A2A}
+.pm-s-ref{background:#FEE8E8;color:#A01010}
+.pm-dmeta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+.pm-dmeta span{display:flex;align-items:center;gap:4px}
+.pm-dact{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+/* Messages */
+.pm-conv-list{display:flex;flex-direction:column;gap:6px}
+.pm-conv-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s}
+.pm-conv-item:hover{border-color:var(--fire);background:#FEF0E8}
+.pm-cav{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1.1rem;font-style:italic;flex-shrink:0}
+.pm-cinfo{flex:1;min-width:0}
+.pm-cname{font-weight:500;font-size:13px}
+.pm-cprev{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.pm-unrd{width:8px;height:8px;border-radius:50%;background:var(--fire);flex-shrink:0}
+/* Avis */
+.pm-avis-item{border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.7rem;background:var(--bg2)}
+.pm-avis-head{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
+.pm-avis-auth{font-weight:500;font-size:14px}
+.pm-avis-stars{color:#F59E0B;font-size:13px}
+.pm-avis-txt{font-size:13px;color:var(--muted);line-height:1.6}
+.pm-avis-date{font-size:11px;color:var(--muted);margin-top:4px}
+/* Empty */
+.pm-empty{text-align:center;padding:4rem 1rem;color:var(--muted)}
+.pm-empty i{font-size:2.5rem;display:block;margin-bottom:1rem;color:var(--border)}
+.pm-empty p{font-size:14px;line-height:1.8;max-width:360px;margin:0 auto}
+/* Loading spinner */
+@keyframes pm-spin{to{transform:rotate(360deg)}}
+.pm-spin{display:inline-block;animation:pm-spin 1s linear infinite}
+@media(max-width:700px){
+  .pm-hero-inner{gap:1rem}
+  .pm-avail-card{width:100%}
+  .pm-tabs{padding:0 1rem}
+  .pm-body{padding:1rem}
+}
+</style>
+
+<div id="page-pitmaster-dashboard" class="hidden">
+  <nav class="pm-nav">
+    <button class="btn-back" onclick="showPage('home')" style="color:var(--dark);font-size:14px;display:flex;align-items:center;gap:6px">
+      <i class="ti ti-arrow-left"></i> Retour
+    </button>
+    <div class="pm-nav-logo"><div class="logo-dot"></div> Espace Pitmaster</div>
+    <div style="width:80px"></div>
+  </nav>
+
+  <div class="pm-hero">
+    <div class="pm-hero-inner">
+      <div id="pm-avatar" class="pm-avatar a1">?</div>
+      <div class="pm-hero-info">
+        <div class="pm-hello">Bienvenue,</div>
+        <div id="pm-title" class="pm-htitle">Chargement...</div>
+        <div id="pm-hspec" class="pm-hspec"></div>
+        <div class="pm-stats">
+          <div class="pm-stat"><span class="pm-sn" id="pm-sr">–</span><span class="pm-sl">demandes</span></div>
+          <div class="pm-stat"><span class="pm-sn" id="pm-sm">–</span><span class="pm-sl">messages</span></div>
+          <div class="pm-stat"><span class="pm-sn" id="pm-sa">–</span><span class="pm-sl">avis</span></div>
+        </div>
+      </div>
+      <div class="pm-avail-card">
+        <div class="pm-avail-lbl">Mon statut</div>
+        <button class="pm-avail-btn on" id="pm-avail-btn" onclick="PMDash.toggleAvail()">
+          <div class="pm-avdot"></div>
+          <span id="pm-avail-txt">Disponible</span>
+        </button>
+        <div class="pm-avsub" id="pm-avsub">Vous recevez des demandes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pm-tabs-wrap">
+    <div class="pm-tabs">
+      <button class="pm-tab active" onclick="PMDash.tab('profil',this)">
+        <i class="ti ti-user-edit"></i> Mon profil
+      </button>
+      <button class="pm-tab" onclick="PMDash.tab('demandes',this)">
+        <i class="ti ti-calendar-event"></i> Demandes
+        <span class="pm-tab-badge hidden" id="pm-bd">0</span>
+      </button>
+      <button class="pm-tab" onclick="PMDash.tab('messages',this)">
+        <i class="ti ti-message-2"></i> Messages
+        <span class="pm-tab-badge hidden" id="pm-bm">0</span>
+      </button>
+      <button class="pm-tab" onclick="PMDash.tab('avis',this)">
+        <i class="ti ti-star"></i> Avis reçus
+      </button>
+    </div>
+  </div>
+
+  <div class="pm-body">
+    <div id="pm-tp" class="pm-tab-pane"></div>
+    <div id="pm-td" class="pm-tab-pane hidden"></div>
+    <div id="pm-tm" class="pm-tab-pane hidden"></div>
+    <div id="pm-ta" class="pm-tab-pane hidden"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const _e = s => (window.escHTML || (x => String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')))(s);
+  const _load = txt => `<div style="padding:2rem;text-align:center;color:var(--muted);font-size:13px"><i class="ti ti-loader-2 pm-spin" style="font-size:1.8rem;display:block;margin-bottom:.5rem;color:var(--fire)"></i>${txt||'Chargement...'}</div>`;
+
+  let _pm = null; // current user's pitmaster profile
+
+  // ── Extend showPage to handle pitmaster-dashboard ──
+  ;(function(){
+    const orig = window.showPage;
+    window.showPage = function(pg){
+      if(typeof orig==='function') orig(pg);
+      const el = document.getElementById('page-pitmaster-dashboard');
+      if(el) el.classList.toggle('hidden', pg !== 'pitmaster-dashboard');
+    };
+  })();
+
+  // ── Load pitmaster profile for logged-in user ──
+  async function checkPM(){
+    const cu = window.currentUser;
+    if(!cu){ _pm=null; _injectNavBtn(); return; }
+    try{
+      const {data} = await sb.from('pitmasters').select('*')
+        .or('user_id.eq.'+cu.id+',email.eq.'+cu.email)
+        .limit(1);
+      _pm = (data && data[0]) || null;
+    }catch(ex){ _pm=null; }
+    _injectNavBtn();
+  }
+
+  function _injectNavBtn(){
+    const nav = document.querySelector('.nav-cta');
+    if(!nav) return;
+    const old = nav.querySelector('#pm-nav-btn');
+    if(old) old.remove();
+    if(!_pm || !window.currentUser) return;
+    const btn = document.createElement('button');
+    btn.id = 'pm-nav-btn';
+    btn.className = 'btn-ghost';
+    btn.innerHTML = '<i class="ti ti-flame" style="color:var(--fire)"></i> Mon espace';
+    btn.onclick = openDash;
+    nav.prepend(btn);
+  }
+
+  // ── Open dashboard ──
+  async function openDash(){
+    window.showPage('pitmaster-dashboard');
+    if(!_pm) await checkPM();
+    if(!_pm){
+      document.getElementById('pm-tp').innerHTML = `<div class="pm-empty">
+        <i class="ti ti-user-plus" style="color:var(--fire)"></i>
+        <p>Vous n'avez pas encore de profil expert BBQ sur Allo Braise.</p>
+        <button class="pm-btn pm-btn-fire" onclick="showPage('home');setTimeout(()=>openModal('pitmaster'),100)" style="margin-top:1.5rem">
+          <i class="ti ti-flame"></i> Créer mon profil
+        </button>
+      </div>`;
+      return;
+    }
+    _renderHero();
+    tab('profil', document.querySelector('.pm-tab'));
+    _loadStats();
+  }
+
+  // ── Hero ──
+  function _renderHero(){
+    if(!_pm) return;
+    const avs = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10'];
+    const av = avs[(_pm.nom||'a').charCodeAt(0) % avs.length];
+    const avEl = document.getElementById('pm-avatar');
+    if(avEl){ avEl.className='pm-avatar '+av; avEl.textContent=(_pm.nom||'?')[0].toUpperCase(); }
+    const tEl = document.getElementById('pm-title'); if(tEl) tEl.textContent=_pm.nom||'';
+    const sEl = document.getElementById('pm-hspec'); if(sEl) sEl.textContent=_pm.specialite||'';
+    _setAvailUI(_pm.actif !== false);
+  }
+
+  function _setAvailUI(on){
+    const btn=document.getElementById('pm-avail-btn');
+    const txt=document.getElementById('pm-avail-txt');
+    const sub=document.getElementById('pm-avsub');
+    if(!btn||!txt||!sub) return;
+    btn.className='pm-avail-btn '+(on?'on':'off');
+    txt.textContent = on?'Disponible':'Indisponible';
+    sub.textContent = on?'Vous recevez des demandes':'Vous n\'apparaissez plus dans la liste';
+  }
+
+  async function toggleAvail(){
+    if(!_pm) return;
+    const isOn = _pm.actif !== false;
+    const newVal = !isOn;
+    try{
+      const {error} = await sb.from('pitmasters').update({actif:newVal}).eq('id',_pm.id);
+      if(error) throw error;
+      _pm.actif = newVal;
+      _setAvailUI(newVal);
+      if(typeof toast==='function') toast(newVal?'Vous êtes maintenant disponible 🔥':'Vous êtes maintenant indisponible','success',newVal?'✅':'⏸');
+    }catch(ex){
+      if(typeof toast==='function') toast('Erreur de mise à jour','error','❌');
+    }
+  }
+
+  // ── Stats loader ──
+  async function _loadStats(){
+    if(!_pm||!window.currentUser) return;
+    const cu = window.currentUser;
+    const pitEmail = _pm.email||cu.email;
+
+    // Reservations
+    try{
+      const {data:resa} = await sb.from('reservations').select('*')
+        .eq('pitmaster_email', pitEmail).order('created_at',{ascending:false});
+      window._pmR = resa||[];
+      const att = (resa||[]).filter(r=>r.statut==='attente').length;
+      const srEl=document.getElementById('pm-sr'); if(srEl) srEl.textContent=(resa||[]).length;
+      const bdEl=document.getElementById('pm-bd'); if(bdEl){ bdEl.textContent=att; bdEl.classList.toggle('hidden',att===0); }
+    }catch(e){}
+
+    // Messages + unread
+    try{
+      const {count:total} = await sb.from('messages').select('id',{count:'exact',head:true})
+        .or('to_user.eq.'+cu.id+',to_user.eq.'+cu.email+',from_user.eq.'+cu.id+',from_user.eq.'+cu.email);
+      const smEl=document.getElementById('pm-sm'); if(smEl) smEl.textContent=total||0;
+      const {count:unrd} = await sb.from('messages').select('id',{count:'exact',head:true})
+        .eq('lu',false).or('to_user.eq.'+cu.id+',to_user.eq.'+cu.email);
+      const bmEl=document.getElementById('pm-bm'); if(bmEl){ bmEl.textContent=unrd||0; bmEl.classList.toggle('hidden',(unrd||0)===0); }
+    }catch(e){}
+
+    // Avis
+    try{
+      const {data:avis} = await sb.from('avis').select('*')
+        .eq('pitmaster_nom',_pm.nom).order('created_at',{ascending:false});
+      window._pmA = avis||[];
+      const saEl=document.getElementById('pm-sa'); if(saEl) saEl.textContent=(avis||[]).length;
+    }catch(e){}
+  }
+
+  // ── Tab switcher ──
+  function tab(name, btn){
+    document.querySelectorAll('.pm-tab').forEach(t=>t.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    ['tp','td','tm','ta'].forEach(id=>{const el=document.getElementById('pm-'+id);if(el) el.classList.add('hidden');});
+    const map={profil:'tp',demandes:'td',messages:'tm',avis:'ta'};
+    const el=document.getElementById('pm-'+map[name]);
+    if(!el) return;
+    el.classList.remove('hidden');
+    if(name==='profil') _renderProfil();
+    else if(name==='demandes') _renderDemandes();
+    else if(name==='messages') _renderMessages();
+    else if(name==='avis') _renderAvis();
+  }
+
+  // ── PROFIL TAB ──
+  function _renderProfil(){
+    const el=document.getElementById('pm-tp');
+    if(!el||!_pm) return;
+    const shareUrl = 'https://allobraise.fr';
+    el.innerHTML=`
+    <div class="pm-section">
+      <div class="pm-shead">Informations de mon profil</div>
+      <div class="pm-grid2">
+        <div class="fg"><label>Pseudo / Nom de marque</label><input type="text" id="pme-nom" value="${_e(_pm.nom||'')}" placeholder="Le Gros Fumeur"></div>
+        <div class="fg"><label>Ville principale</label><input type="text" id="pme-ville" value="${_e(_pm.ville||'')}" placeholder="Lyon, Paris..."></div>
+        <div class="fg"><label>Spécialité BBQ</label><input type="text" id="pme-spec" value="${_e(_pm.specialite||'')}" placeholder="Fumoir, plancha, halal..."></div>
+        <div class="fg"><label>Tarif indicatif</label><input type="text" id="pme-tarif" value="${_e(_pm.tarif||'')}" placeholder="à partir de 120€ / événement"></div>
+      </div>
+      <div class="fg" style="margin-top:.5rem">
+        <label>Description (visible par les clients)</label>
+        <textarea id="pme-desc" style="min-height:110px">${_e(_pm.description||'')}</textarea>
+      </div>
+      <div class="fg" style="margin-top:.5rem">
+        <label>Email de contact pour les clients</label>
+        <input type="email" id="pme-email" value="${_e(_pm.email||'')}" placeholder="contact@exemple.fr">
+      </div>
+      <button class="pm-btn pm-btn-fire" id="pme-save" onclick="PMDash.saveProfil()" style="margin-top:1rem">
+        <i class="ti ti-device-floppy"></i> Enregistrer les modifications
+      </button>
+    </div>
+    <div class="pm-section">
+      <div class="pm-shead">Partager mon profil</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.7">Partagez votre profil Allo Braise pour recevoir plus de clients dans votre région.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="pm-btn pm-btn-wa" href="https://wa.me/?text=${encodeURIComponent('Vous cherchez un expert BBQ ? Découvrez mon profil sur Allo Braise ! 🔥 '+shareUrl)}" target="_blank" rel="noopener">
+          <i class="ti ti-brand-whatsapp"></i> WhatsApp
+        </a>
+        <button class="pm-btn pm-btn-dark" onclick="PMDash.copyLink()">
+          <i class="ti ti-link"></i> Copier le lien
+        </button>
+      </div>
+    </div>`;
+  }
+
+  async function saveProfil(){
+    const nom=document.getElementById('pme-nom')?.value.trim();
+    const ville=document.getElementById('pme-ville')?.value.trim();
+    const spec=document.getElementById('pme-spec')?.value.trim();
+    const tarif=document.getElementById('pme-tarif')?.value.trim();
+    const desc=document.getElementById('pme-desc')?.value.trim();
+    const email=document.getElementById('pme-email')?.value.trim();
+    if(!nom||!ville){ if(typeof toast==='function') toast('Nom et ville obligatoires','error','⚠️'); return; }
+    const btn=document.getElementById('pme-save');
+    if(btn){ btn.innerHTML='<i class="ti ti-loader-2 pm-spin"></i> Enregistrement...'; btn.disabled=true; }
+    try{
+      const {error}=await sb.from('pitmasters').update({nom,ville,specialite:spec,tarif,description:desc,email}).eq('id',_pm.id);
+      if(error) throw error;
+      Object.assign(_pm,{nom,ville,specialite:spec,tarif,description:desc,email});
+      _renderHero();
+      if(typeof toast==='function') toast('Profil mis à jour ! 🔥','success','✅');
+    }catch(ex){
+      if(typeof toast==='function') toast('Erreur de sauvegarde','error','❌');
+    }
+    if(btn){ btn.innerHTML='<i class="ti ti-device-floppy"></i> Enregistrer les modifications'; btn.disabled=false; }
+  }
+
+  function copyLink(){
+    navigator.clipboard?.writeText('https://allobraise.fr')
+      .then(()=>{ if(typeof toast==='function') toast('Lien copié ! Partagez votre profil 🔥','success','🔗'); })
+      .catch(()=>{});
+  }
+
+  // ── DEMANDES TAB ──
+  async function _renderDemandes(){
+    const el=document.getElementById('pm-td');
+    if(!el) return;
+    if(!window._pmR){
+      el.innerHTML=_load('Chargement des demandes...');
+      await _loadStats();
+    }
+    const data=window._pmR||[];
+    if(!data.length){
+      el.innerHTML=`<div class="pm-empty"><i class="ti ti-calendar-off"></i><p>Aucune demande de réservation pour l'instant.<br>Partagez votre profil pour recevoir vos premiers clients !</p></div>`;
+      return;
+    }
+    el.innerHTML=`<div class="pm-section"><div class="pm-shead">${data.length} demande${data.length>1?'s':''}</div>
+    ${data.map((r,i)=>{
+      const sc=r.statut==='acceptee'?'pm-s-acc':r.statut==='refusee'?'pm-s-ref':'pm-s-att';
+      const st=r.statut==='acceptee'?'✅ Acceptée':r.statut==='refusee'?'❌ Refusée':'⏳ En attente';
+      const dt=r.date_event?new Date(r.date_event).toLocaleDateString('fr',{day:'numeric',month:'long',year:'numeric'}):'Non précisée';
+      return `<div class="pm-demande" data-ri="${i}">
+        <div class="pm-dhead">
+          <div class="pm-dclient">${_e(r.client_prenom||'Client')} &mdash; ${_e(String(r.personnes||'?'))} pers.</div>
+          <span class="pm-status ${sc}">${st}</span>
+        </div>
+        <div class="pm-dmeta">
+          <span><i class="ti ti-calendar"></i>${dt}</span>
+          <span><i class="ti ti-map-pin"></i>${_e(r.lieu||'Non précisé')}</span>
+          <span><i class="ti ti-coin"></i>${_e(r.budget||'À négocier')}</span>
+          ${r.client_email?`<span><i class="ti ti-mail"></i>${_e(r.client_email)}</span>`:''}
+        </div>
+        ${r.statut==='attente'?`<div class="pm-dact">
+          <button class="pm-btn pm-btn-green" data-act="acc">Accepter</button>
+          <button class="pm-btn pm-btn-outline" data-act="ref">Refuser</button>
+          <button class="pm-btn pm-btn-fire-out" data-act="msg">Contacter</button>
+        </div>`:r.statut==='acceptee'?`<div style="font-size:12px;color:#2A7A2A;margin-top:4px;font-weight:500">Réservation confirmée</div>`:''}
+      </div>`;
+    }).join('')}</div>`;
+    if(!el._delegate){
+      el._delegate=true;
+      el.addEventListener('click',function(ev){
+        const btn=ev.target.closest('[data-act]');
+        if(!btn) return;
+        const r=window._pmR?.[parseInt(btn.closest('.pm-demande')?.dataset.ri)];
+        if(!r) return;
+        const act=btn.dataset.act;
+        if(act==='acc') _doResa(r,'acceptee');
+        else if(act==='ref') _doResa(r,'refusee');
+        else if(act==='msg') _contactClient(r.client_email,r.client_prenom);
+      });
+    }
+  }
+
+  async function _doResa(r, statut){
+    try{ await sb.from('reservations').update({statut}).eq('id',r.id); }catch(e){}
+    try{
+      if(_pm && r.client_email){
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT,{
+          to_email:r.client_email,
+          from_name:_pm.nom||'Votre expert BBQ',
+          from_email:_pm.email||ADMIN_EMAIL,
+          pitmaster:_pm.nom,
+          message:statut==='acceptee'
+            ?'Bonne nouvelle ! '+(_pm.nom||'Votre expert')+' a accepté votre demande de BBQ. 🔥 Il/elle va vous contacter pour finaliser les détails.'
+            :'Votre demande de réservation n\'a pas pu être retenue. Découvrez d\'autres experts sur Allo Braise !',
+          reply_to:_pm.email||ADMIN_EMAIL
+        });
+      }
+    }catch(ex){}
+    if(window._pmR){ const t=window._pmR.find(x=>x.id===r.id); if(t) t.statut=statut; }
+    if(typeof toast==='function') toast(statut==='acceptee'?'Demande acceptée — client notifié 🔥':'Demande refusée','success',statut==='acceptee'?'✅':'👍');
+    await _renderDemandes();
+    _loadStats();
+  }
+
+  function _contactClient(email, prenom){
+    if(!window.currentUser||!_pm||!email) return;
+    const convId=('pm__'+(_pm.id||'x')+'__'+email).replace(/[^a-zA-Z0-9_@.]/g,'_');
+    if(!window.msgPanelOpen){
+      window.msgPanelOpen=true;
+      document.getElementById('msg-panel')?.classList.add('open');
+      document.body.style.overflow='hidden';
+    }
+    if(typeof openConversation==='function') openConversation(convId,email,prenom||'Client');
+  }
+
+  // ── MESSAGES TAB ──
+  async function _renderMessages(){
+    const el=document.getElementById('pm-tm');
+    if(!el||!window.currentUser) return;
+    el.innerHTML=_load('Chargement des conversations...');
+    const cu=window.currentUser;
+    try{
+      const {data}=await sb.from('messages').select('*')
+        .or('from_user.eq.'+cu.id+',to_user.eq.'+cu.id+',from_user.eq.'+cu.email+',to_user.eq.'+cu.email)
+        .order('created_at',{ascending:false});
+      if(!data||!data.length){
+        el.innerHTML=`<div class="pm-empty"><i class="ti ti-message-off"></i><p>Aucun message pour l'instant.<br>Vos clients vous contacteront via la messagerie de la plateforme.</p></div>`;
+        return;
+      }
+      const convs={};
+      data.forEach(m=>{(convs[m.conversation_id]=convs[m.conversation_id]||[]).push(m);});
+      const avArr=['a1','a2','a3','a4','a5','a6'];
+      let k=0;
+      el.innerHTML=`<div class="pm-section"><div class="pm-shead">${Object.keys(convs).length} conversation${Object.keys(convs).length>1?'s':''}</div>
+      <div class="pm-conv-list" id="pm-cl">${Object.entries(convs).map(([cid,msgs])=>{
+        const last=msgs[0];
+        const mine=last.from_user===cu.id||last.from_user===cu.email;
+        const other=mine?last.to_user:last.from_user;
+        const name=last.pitmaster_name||other||'Correspondant';
+        const unrd=msgs.some(m=>!m.lu&&(m.to_user===cu.id||m.to_user===cu.email));
+        const av=avArr[(k++)%avArr.length];
+        const time=new Date(last.created_at).toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="pm-conv-item" data-cid="${_e(cid)}" data-other="${_e(other)}" data-name="${_e(name)}">
+          <div class="pm-cav ${av}">${_e((name[0]||'?').toUpperCase())}</div>
+          <div class="pm-cinfo">
+            <div class="pm-cname">${_e(name)}</div>
+            <div class="pm-cprev">${mine?'<span style="color:var(--muted);font-size:11px">Vous : </span>':''}${_e(last.message)}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div style="font-size:11px;color:var(--muted)">${time}</div>
+            ${unrd?'<div class="pm-unrd"></div>':''}
+          </div>
+        </div>`;
+      }).join('')}</div></div>`;
+      document.getElementById('pm-cl').addEventListener('click',function(ev){
+        const item=ev.target.closest('.pm-conv-item');
+        if(!item) return;
+        const {cid,other,name}=item.dataset;
+        if(!window.msgPanelOpen){
+          window.msgPanelOpen=true;
+          document.getElementById('msg-panel')?.classList.add('open');
+          document.body.style.overflow='hidden';
+        }
+        if(typeof openConversation==='function') openConversation(cid,other,name);
+      });
+    }catch(ex){
+      el.innerHTML=`<div class="pm-empty"><i class="ti ti-wifi-off"></i><p>Connexion impossible.<br>Vérifiez votre réseau et réessayez.</p></div>`;
+    }
+  }
+
+  // ── AVIS TAB ──
+  async function _renderAvis(){
+    const el=document.getElementById('pm-ta');
+    if(!el) return;
+    if(!window._pmA){
+      el.innerHTML=_load('Chargement des avis...');
+      await _loadStats();
+    }
+    const data=window._pmA||[];
+    if(!data.length){
+      el.innerHTML=`<div class="pm-empty"><i class="ti ti-star-off"></i><p>Aucun avis pour l'instant.<br>Continuez votre super travail et les avis viendront ! 🔥</p></div>`;
+      return;
+    }
+    const avg=(data.reduce((s,a)=>s+(a.note||5),0)/data.length).toFixed(1);
+    el.innerHTML=`<div class="pm-section">
+      <div class="pm-shead">Note moyenne : <span style="color:var(--fire);font-weight:700">${avg}/5 ⭐</span> &mdash; ${data.length} avis client${data.length>1?'s':''}</div>
+      ${data.map(a=>{
+        const stars='★'.repeat(a.note||5)+'☆'.repeat(5-(a.note||5));
+        const d=new Date(a.created_at).toLocaleDateString('fr',{month:'long',year:'numeric'});
+        return `<div class="pm-avis-item">
+          <div class="pm-avis-head"><span class="pm-avis-auth">${_e(a.auteur)}</span><span class="pm-avis-stars">${stars}</span></div>
+          <div class="pm-avis-txt">${_e(a.texte)}</div>
+          <div class="pm-avis-date">${d}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // ── PUBLIC API ──
+  window.PMDash = {
+    tab, toggleAvail, saveProfil, copyLink,
+    open: openDash
+  };
+
+  // ── INIT ──
+  function init(){
+    // Hook updateNavUser to inject "Mon espace" btn after auth changes
+    const origUNU = window.updateNavUser;
+    if(typeof origUNU==='function' && !origUNU._pmDash){
+      window.updateNavUser = function(){
+        origUNU.apply(this, arguments);
+        setTimeout(checkPM, 500);
+      };
+      window.updateNavUser._pmDash = true;
+    }
+    if(typeof sb !== 'undefined'){
+      sb.auth.onAuthStateChange(()=>setTimeout(checkPM, 900));
+      setTimeout(checkPM, 1200);
+    }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>
