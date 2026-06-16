@@ -90,7 +90,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .btn-hero-secondary:hover{background:rgba(255,255,255,0.2);transform:translateY(-2px)}
 
 /* SEARCH IN HERO */
-.hero-search{background:rgba(255,255,255,0.95);border-radius:12px;padding:1rem;max-width:560px;margin:0 auto;backdrop-filter:blur(12px)}
+.hero-search{background:rgba(255,255,255,0.95);border-radius:12px;padding:1rem;max-width:560px;margin:0 auto;backdrop-filter:blur(12px);position:relative}
 .search-row{display:flex;gap:8px}
 .search-input{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1rem}
 .search-input i{color:var(--muted);font-size:18px;flex-shrink:0}
@@ -101,6 +101,15 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .search-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .stag{background:white;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:12px;cursor:pointer;transition:all 0.15s}
 .stag:hover,.stag.active{border-color:var(--fire);color:var(--fire);background:#FEF0E8}
+/* CITY AUTOCOMPLETE DROPDOWN */
+.city-drop{position:absolute;left:0;right:0;top:calc(100% + 2px);background:white;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.13);z-index:300;overflow:hidden;border:1px solid var(--border)}
+.city-drop-item{padding:.6rem 1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:14px;transition:background 0.1s}
+.city-drop-item:hover,.city-drop-item.cdrop-focus{background:#FEF0E8}
+.city-drop-name{color:var(--dark);display:flex;align-items:center;gap:6px}
+.city-drop-km{font-size:11px;color:var(--fire);background:#FEF0E8;padding:2px 8px;border-radius:20px;flex-shrink:0;font-weight:500}
+/* PITMASTER CARD ACTIVE BADGE */
+.pcard-active{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px}
+.active-dot-sm{width:5px;height:5px;border-radius:50%;background:#22C55E;flex-shrink:0}
 
 /* FLAMES */
 .flames-container{position:absolute;bottom:0;left:0;right:0;height:120px;pointer-events:none;z-index:1;display:flex;align-items:flex-end;justify-content:center;gap:0}
@@ -432,10 +441,11 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
         <div class="search-row">
           <div class="search-input">
             <i class="ti ti-map-pin" aria-hidden="true"></i>
-            <input type="text" placeholder="Paris, Marseille, Lyon, Bordeaux, Lille..." id="ville-input" oninput="filterVille()">
+            <input type="text" placeholder="Paris, Marseille, Lyon, Bordeaux, Lille..." id="ville-input" oninput="filterVille();window.cityDrop&&cityDrop.update(this.value)" onfocus="window.cityDrop&&cityDrop.update(this.value)" autocomplete="off">
           </div>
-          <button class="btn-search" onclick="filterVille();document.getElementById('main-section').scrollIntoView({behavior:'smooth'})">Chercher</button>
+          <button class="btn-search" onclick="filterVille();window.cityDrop&&cityDrop.hide();document.getElementById('main-section').scrollIntoView({behavior:'smooth'})">Chercher</button>
         </div>
+        <div class="city-drop hidden" id="city-drop"></div>
         <div class="search-tags">
           <span class="stag" onclick="setVille(this)">Paris</span>
           <span class="stag" onclick="setVille(this)">Lyon</span>
@@ -988,27 +998,27 @@ const ADMIN_EMAIL = 'a.hamtine@hotmail.fr';
 try { if(typeof emailjs!=='undefined') emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e) { console.error('EmailJS init failed:', e); }
 
 const pitmasters=[
-  {init:"R",av:"a1",name:"Le Gros Fumeur",ville:"Paris",spec:"Charbon & fumoir Texas",stars:"★★★★★",rating:4.9,rev:34,prix:150,dispo:true,desc:"Passionné de BBQ depuis plus de 10 ans, je me déplace chez vous avec tout mon matériel. Spécialiste côtes levées et pulled pork façon Texas. Je couvre Paris et l'Île-de-France.",tags:["Charbon","Fumoir","Pulled pork","Ribs","Matériel inclus"],avis:[{a:"Sophie M.",s:"★★★★★",t:"Incroyable soirée ! Le pulled pork était fondant, tout le monde a adoré.",d:"Juin 2025"},{a:"Thomas R.",s:"★★★★★",t:"Parfait pour notre anniversaire. Très professionnel.",d:"Mai 2025"},{a:"Laura B.",s:"★★★★☆",t:"Super prestation, BBQ délicieux. On recommande !",d:"Avril 2025"}]},
-  {init:"N",av:"a7",name:"Nass le Chef",ville:"Paris",spec:"Fusion asiatique & yakitori",stars:"★★★★★",rating:4.9,rev:27,prix:160,dispo:true,desc:"Ex-cuisinier en restaurant parisien. BBQ fusion japonaise et thaï. Yakitori au charbon de bois, marinades soja-gingembre. Paris et petite couronne.",tags:["Fusion japonaise","Yakitori","Marinade soja","Raffiné"],avis:[{a:"Léa T.",s:"★★★★★",t:"Les yakitori étaient parfaits, les marinades incroyables.",d:"Juillet 2025"},{a:"Antoine S.",s:"★★★★★",t:"Super original pour notre soirée à thème.",d:"Juin 2025"}]},
-  {init:"S",av:"a2",name:"Sam le Braiseur",ville:"Lyon",spec:"Plancha & brochettes maison",stars:"★★★★★",rating:4.8,rev:21,prix:120,dispo:true,desc:"Passionné de plancha depuis 8 ans. Mes marinades maison font la différence. Halal possible. Je me déplace sur Lyon et toute la métropole.",tags:["Plancha","Halal","Brochettes","Marinades"],avis:[{a:"Karim A.",s:"★★★★★",t:"Les brochettes étaient exceptionnelles ! Marinade unique.",d:"Juillet 2025"},{a:"Claire D.",s:"★★★★★",t:"Super pro, matériel nickel.",d:"Juin 2025"}]},
-  {init:"M",av:"a6",name:"Marco Smoke",ville:"Lyon",spec:"Fumoir low & slow — brisket & ribs",stars:"★★★★★",rating:4.9,rev:42,prix:180,dispo:false,desc:"Compétiteur BBQ niveau national. Brisket 12h, ribs St-Louis. Uniquement sur réservation 48h min. Couvre Lyon et Rhône-Alpes.",tags:["Compétition","Brisket","Ribs St-Louis","Fumoir 12h","Premium"],avis:[{a:"Julien F.",s:"★★★★★",t:"Le meilleur brisket que j'aie mangé en dehors des États-Unis.",d:"Juillet 2025"},{a:"Sandra K.",s:"★★★★★",t:"Marco est un artiste.",d:"Juin 2025"}]},
-  {init:"K",av:"a3",name:"Karim BBQ",ville:"Marseille",spec:"BBQ halal & épices orientales",stars:"★★★★★",rating:5.0,rev:18,prix:130,dispo:true,desc:"Expert BBQ halal avec une touche orientale. Agneau entier, merguez maison, épices importées. Certifié halal. Couvre Marseille et Aix-en-Provence.",tags:["100% Halal","Agneau","Merguez maison","Épices orientales"],avis:[{a:"Rachid B.",s:"★★★★★",t:"Parfait pour notre fête de famille. L'agneau était sublime.",d:"Juillet 2025"},{a:"Amina L.",s:"★★★★★",t:"Enfin un vrai BBQ halal de qualité !",d:"Mai 2025"}]},
-  {init:"J",av:"a5",name:"Juju la Flamme",ville:"Marseille",spec:"BBQ végétarien & légumes grillés",stars:"★★★★★",rating:4.8,rev:15,prix:110,dispo:true,desc:"Spécialiste BBQ végétarien et vegan. Légumes de saison, fromages marinés, halloumi. Couvre Marseille et toute la région PACA.",tags:["Végétarien","Vegan possible","Légumes de saison","Bio"],avis:[{a:"Emma V.",s:"★★★★★",t:"On a été bluffés. Le meilleur BBQ végé qu'on ait mangé !",d:"Juillet 2025"},{a:"Pierre M.",s:"★★★★★",t:"Les carnivores ont adoré aussi !",d:"Juin 2025"}]},
-  {init:"T",av:"a4",name:"Tonton Grillades",ville:"Bordeaux",spec:"Grillades & côtes de bœuf charolaises",stars:"★★★★☆",rating:4.7,rev:29,prix:100,dispo:true,desc:"Le BBQ comme à la campagne, généreux et sans chichis. Viandes sélectionnées chez les producteurs locaux. Couvre Bordeaux et la Gironde.",tags:["Saucisses maison","Côtes de bœuf","À l'ancienne","Gironde"],avis:[{a:"Michel P.",s:"★★★★★",t:"Un vrai BBQ familial, généreux et délicieux.",d:"Juin 2025"},{a:"Nathalie G.",s:"★★★★☆",t:"Très bon rapport qualité-prix.",d:"Mai 2025"}]},
-  {init:"A",av:"a8",name:"Antoine Charbon",ville:"Toulouse",spec:"BBQ familial & grandes tablées",stars:"★★★★☆",rating:4.6,rev:38,prix:90,dispo:true,desc:"Spécialiste grandes tablées jusqu'à 100 personnes. Équipement pro, tarifs imbattables. Basé à Toulouse, couvre toute la Haute-Garonne.",tags:["Grandes tablées","Jusqu'à 100 pers.","Équipement pro","Tarif imbattable"],avis:[{a:"Christelle B.",s:"★★★★★",t:"Parfait pour notre réunion de famille de 70 personnes.",d:"Juillet 2025"},{a:"Robert M.",s:"★★★★☆",t:"Très bon pour le prix, portions généreuses.",d:"Juin 2025"}]},
-  {init:"L",av:"a9",name:"Loulou des Braises",ville:"Nantes",spec:"BBQ & spécialités atlantiques",stars:"★★★★★",rating:4.8,rev:12,prix:140,dispo:true,desc:"BBQ avec une touche atlantique. Huîtres grillées, saucisses de Vendée, viandes locales. Couvre Nantes et Loire-Atlantique.",tags:["Loire-Atlantique","Produits locaux","Huîtres grillées","Artisan"],avis:[{a:"Isabelle C.",s:"★★★★★",t:"Incroyable association BBQ et spécialités locales.",d:"Juillet 2025"},{a:"Marc D.",s:"★★★★★",t:"Les huîtres grillées, une révélation !",d:"Juin 2025"}]},
-  {init:"F",av:"a10",name:"Fred la Braise",ville:"Lille",spec:"Côte de bœuf maturée & sélection boucher",stars:"★★★★★",rating:5.0,rev:9,prix:200,dispo:false,desc:"Ex-boucher nordiste. Je sélectionne moi-même mes viandes. Côte de bœuf maturée 30 jours, tomahawk, wagyu. Couvre Lille et les Hauts-de-France.",tags:["Ex-boucher","Viande maturée","Tomahawk","Wagyu"],avis:[{a:"Xavier L.",s:"★★★★★",t:"La côte de bœuf maturée était à tomber.",d:"Juillet 2025"},{a:"Céline R.",s:"★★★★★",t:"Une expérience BBQ haut de gamme.",d:"Juin 2025"}]},
-  {init:"C",av:"a11",name:"Ced BBQ",ville:"Strasbourg",spec:"BBQ alsacien & street food",stars:"★★★★☆",rating:4.7,rev:22,prix:115,dispo:true,desc:"Fusion BBQ et spécialités alsaciennes. Knacks grillées premium, côte de porc marinée, sauce BBQ maison au riesling. Couvre Strasbourg et le Bas-Rhin.",tags:["Alsace","Knacks premium","Street food","Sauce riesling"],avis:[{a:"Nicolas P.",s:"★★★★★",t:"Original et délicieux ! L'Alsace rencontre le BBQ.",d:"Juillet 2025"},{a:"Manon T.",s:"★★★★☆",t:"La sauce au riesling est une tuerie.",d:"Juin 2025"}]},
-  {init:"P",av:"a12",name:"Paulo Pitmaster",ville:"Rennes",spec:"BBQ breton & poulet entier à la broche",stars:"★★★★★",rating:4.8,rev:31,prix:125,dispo:true,desc:"Spécialiste poulets entiers à la broche et côtelettes marinées. Produits bretons de qualité. Couvre Rennes et l'Ille-et-Vilaine.",tags:["Poulet à la broche","Bretagne","Produits locaux","Classique"],avis:[{a:"Patricia V.",s:"★★★★★",t:"Les poulets étaient parfaitement dorés et juteux.",d:"Juillet 2025"},{a:"Didier M.",s:"★★★★★",t:"Paulo est ponctuel, pro et sympa.",d:"Juillet 2025"}]},
+  {init:"R",av:"a1",name:"Le Gros Fumeur",ville:"Paris",spec:"Charbon & fumoir Texas",stars:"★★★★★",rating:4.9,rev:34,prix:150,dispo:true,activeAgo:"6 min",desc:"Passionné de BBQ depuis plus de 10 ans, je me déplace chez vous avec tout mon matériel. Spécialiste côtes levées et pulled pork façon Texas. Je couvre Paris et l'Île-de-France.",tags:["Charbon","Fumoir","Pulled pork","Ribs","Matériel inclus"],avis:[{a:"Sophie M.",s:"★★★★★",t:"Incroyable soirée ! Le pulled pork était fondant, tout le monde a adoré.",d:"Juin 2025"},{a:"Thomas R.",s:"★★★★★",t:"Parfait pour notre anniversaire. Très professionnel.",d:"Mai 2025"},{a:"Laura B.",s:"★★★★☆",t:"Super prestation, BBQ délicieux. On recommande !",d:"Avril 2025"}]},
+  {init:"N",av:"a7",name:"Nass le Chef",ville:"Paris",spec:"Fusion asiatique & yakitori",stars:"★★★★★",rating:4.9,rev:27,prix:160,dispo:true,activeAgo:"1h",desc:"Ex-cuisinier en restaurant parisien. BBQ fusion japonaise et thaï. Yakitori au charbon de bois, marinades soja-gingembre. Paris et petite couronne.",tags:["Fusion japonaise","Yakitori","Marinade soja","Raffiné"],avis:[{a:"Léa T.",s:"★★★★★",t:"Les yakitori étaient parfaits, les marinades incroyables.",d:"Juillet 2025"},{a:"Antoine S.",s:"★★★★★",t:"Super original pour notre soirée à thème.",d:"Juin 2025"}]},
+  {init:"S",av:"a2",name:"Sam le Braiseur",ville:"Lyon",spec:"Plancha & brochettes maison",stars:"★★★★★",rating:4.8,rev:21,prix:120,dispo:true,activeAgo:"23 min",desc:"Passionné de plancha depuis 8 ans. Mes marinades maison font la différence. Halal possible. Je me déplace sur Lyon et toute la métropole.",tags:["Plancha","Halal","Brochettes","Marinades"],avis:[{a:"Karim A.",s:"★★★★★",t:"Les brochettes étaient exceptionnelles ! Marinade unique.",d:"Juillet 2025"},{a:"Claire D.",s:"★★★★★",t:"Super pro, matériel nickel.",d:"Juin 2025"}]},
+  {init:"M",av:"a6",name:"Marco Smoke",ville:"Lyon",spec:"Fumoir low & slow — brisket & ribs",stars:"★★★★★",rating:4.9,rev:42,prix:180,dispo:false,activeAgo:"3h",desc:"Compétiteur BBQ niveau national. Brisket 12h, ribs St-Louis. Uniquement sur réservation 48h min. Couvre Lyon et Rhône-Alpes.",tags:["Compétition","Brisket","Ribs St-Louis","Fumoir 12h","Premium"],avis:[{a:"Julien F.",s:"★★★★★",t:"Le meilleur brisket que j'aie mangé en dehors des États-Unis.",d:"Juillet 2025"},{a:"Sandra K.",s:"★★★★★",t:"Marco est un artiste.",d:"Juin 2025"}]},
+  {init:"K",av:"a3",name:"Karim BBQ",ville:"Marseille",spec:"BBQ halal & épices orientales",stars:"★★★★★",rating:5.0,rev:18,prix:130,dispo:true,activeAgo:"2 min",desc:"Expert BBQ halal avec une touche orientale. Agneau entier, merguez maison, épices importées. Certifié halal. Couvre Marseille et Aix-en-Provence.",tags:["100% Halal","Agneau","Merguez maison","Épices orientales"],avis:[{a:"Rachid B.",s:"★★★★★",t:"Parfait pour notre fête de famille. L'agneau était sublime.",d:"Juillet 2025"},{a:"Amina L.",s:"★★★★★",t:"Enfin un vrai BBQ halal de qualité !",d:"Mai 2025"}]},
+  {init:"J",av:"a5",name:"Juju la Flamme",ville:"Marseille",spec:"BBQ végétarien & légumes grillés",stars:"★★★★★",rating:4.8,rev:15,prix:110,dispo:true,activeAgo:"45 min",desc:"Spécialiste BBQ végétarien et vegan. Légumes de saison, fromages marinés, halloumi. Couvre Marseille et toute la région PACA.",tags:["Végétarien","Vegan possible","Légumes de saison","Bio"],avis:[{a:"Emma V.",s:"★★★★★",t:"On a été bluffés. Le meilleur BBQ végé qu'on ait mangé !",d:"Juillet 2025"},{a:"Pierre M.",s:"★★★★★",t:"Les carnivores ont adoré aussi !",d:"Juin 2025"}]},
+  {init:"T",av:"a4",name:"Tonton Grillades",ville:"Bordeaux",spec:"Grillades & côtes de bœuf charolaises",stars:"★★★★☆",rating:4.7,rev:29,prix:100,dispo:true,activeAgo:"4h",desc:"Le BBQ comme à la campagne, généreux et sans chichis. Viandes sélectionnées chez les producteurs locaux. Couvre Bordeaux et la Gironde.",tags:["Saucisses maison","Côtes de bœuf","À l'ancienne","Gironde"],avis:[{a:"Michel P.",s:"★★★★★",t:"Un vrai BBQ familial, généreux et délicieux.",d:"Juin 2025"},{a:"Nathalie G.",s:"★★★★☆",t:"Très bon rapport qualité-prix.",d:"Mai 2025"}]},
+  {init:"A",av:"a8",name:"Antoine Charbon",ville:"Toulouse",spec:"BBQ familial & grandes tablées",stars:"★★★★☆",rating:4.6,rev:38,prix:90,dispo:true,activeAgo:"30 min",desc:"Spécialiste grandes tablées jusqu'à 100 personnes. Équipement pro, tarifs imbattables. Basé à Toulouse, couvre toute la Haute-Garonne.",tags:["Grandes tablées","Jusqu'à 100 pers.","Équipement pro","Tarif imbattable"],avis:[{a:"Christelle B.",s:"★★★★★",t:"Parfait pour notre réunion de famille de 70 personnes.",d:"Juillet 2025"},{a:"Robert M.",s:"★★★★☆",t:"Très bon pour le prix, portions généreuses.",d:"Juin 2025"}]},
+  {init:"L",av:"a9",name:"Loulou des Braises",ville:"Nantes",spec:"BBQ & spécialités atlantiques",stars:"★★★★★",rating:4.8,rev:12,prix:140,dispo:true,activeAgo:"2h",desc:"BBQ avec une touche atlantique. Huîtres grillées, saucisses de Vendée, viandes locales. Couvre Nantes et Loire-Atlantique.",tags:["Loire-Atlantique","Produits locaux","Huîtres grillées","Artisan"],avis:[{a:"Isabelle C.",s:"★★★★★",t:"Incroyable association BBQ et spécialités locales.",d:"Juillet 2025"},{a:"Marc D.",s:"★★★★★",t:"Les huîtres grillées, une révélation !",d:"Juin 2025"}]},
+  {init:"F",av:"a10",name:"Fred la Braise",ville:"Lille",spec:"Côte de bœuf maturée & sélection boucher",stars:"★★★★★",rating:5.0,rev:9,prix:200,dispo:false,activeAgo:"1h",desc:"Ex-boucher nordiste. Je sélectionne moi-même mes viandes. Côte de bœuf maturée 30 jours, tomahawk, wagyu. Couvre Lille et les Hauts-de-France.",tags:["Ex-boucher","Viande maturée","Tomahawk","Wagyu"],avis:[{a:"Xavier L.",s:"★★★★★",t:"La côte de bœuf maturée était à tomber.",d:"Juillet 2025"},{a:"Céline R.",s:"★★★★★",t:"Une expérience BBQ haut de gamme.",d:"Juin 2025"}]},
+  {init:"C",av:"a11",name:"Ced BBQ",ville:"Strasbourg",spec:"BBQ alsacien & street food",stars:"★★★★☆",rating:4.7,rev:22,prix:115,dispo:true,activeAgo:"5h",desc:"Fusion BBQ et spécialités alsaciennes. Knacks grillées premium, côte de porc marinée, sauce BBQ maison au riesling. Couvre Strasbourg et le Bas-Rhin.",tags:["Alsace","Knacks premium","Street food","Sauce riesling"],avis:[{a:"Nicolas P.",s:"★★★★★",t:"Original et délicieux ! L'Alsace rencontre le BBQ.",d:"Juillet 2025"},{a:"Manon T.",s:"★★★★☆",t:"La sauce au riesling est une tuerie.",d:"Juin 2025"}]},
+  {init:"P",av:"a12",name:"Paulo Pitmaster",ville:"Rennes",spec:"BBQ breton & poulet entier à la broche",stars:"★★★★★",rating:4.8,rev:31,prix:125,dispo:true,activeAgo:"12 min",desc:"Spécialiste poulets entiers à la broche et côtelettes marinées. Produits bretons de qualité. Couvre Rennes et l'Ille-et-Vilaine.",tags:["Poulet à la broche","Bretagne","Produits locaux","Classique"],avis:[{a:"Patricia V.",s:"★★★★★",t:"Les poulets étaient parfaitement dorés et juteux.",d:"Juillet 2025"},{a:"Didier M.",s:"★★★★★",t:"Paulo est ponctuel, pro et sympa.",d:"Juillet 2025"}]},
 ];
 
 const annonces=[
-  {titre:"Cherche pitmaster anniversaire surprise — 40 personnes",ville:"Paris",date:"19 juillet",personnes:"40 personnes",desc:"Fête surprise pour les 40 ans de mon mari. Jardin privé en région parisienne. Matériel fourni si possible.",budget:"250–400€"},
-  {titre:"BBQ repas de famille — 60 personnes",ville:"Lyon",date:"27 juillet",personnes:"60 personnes",desc:"Grand repas de famille annuel. Terrain spacieux. Cherche quelqu'un de sérieux avec du matériel pro.",budget:"300–500€"},
-  {titre:"Team building PME — BBQ terrasse",ville:"Bordeaux",date:"6 septembre",personnes:"25 personnes",desc:"Événement d'entreprise convivial. Terrasse privatisée. Besoin d'un pro ponctuel.",budget:"350–550€"},
-  {titre:"Mariage champêtre — BBQ le soir",ville:"Toulouse",date:"23 août",personnes:"80 personnes",desc:"Mariage en domaine agricole. On veut un vrai pitmaster pas un traiteur. Sud-Ouest.",budget:"600–900€"},
-  {titre:"Soirée entre amis — 20 personnes",ville:"Nantes",date:"12 juillet",personnes:"20 personnes",desc:"Soirée chill entre potes, jardin en ville. Budget serré mais on veut bien manger !",budget:"150–250€"},
-  {titre:"BBQ d'entreprise — 50 personnes",ville:"Marseille",date:"15 septembre",personnes:"50 personnes",desc:"Afterwork d'été dans nos locaux avec grande terrasse. Option halal indispensable.",budget:"400–600€"},
+  {titre:"Cherche pitmaster anniversaire surprise — 40 personnes",ville:"Paris",date:"19 juillet",personnes:"40 personnes",desc:"Fête surprise pour les 40 ans de mon mari. Jardin privé en région parisienne. Matériel fourni si possible.",budget:"250–400€",reponses:3,theme:"Anniversaire & fêtes",postedAgo:"Aujourd'hui à 09:14"},
+  {titre:"BBQ repas de famille — 60 personnes",ville:"Lyon",date:"27 juillet",personnes:"60 personnes",desc:"Grand repas de famille annuel. Terrain spacieux. Cherche quelqu'un de sérieux avec du matériel pro.",budget:"300–500€",reponses:1,postedAgo:"Aujourd'hui à 08:32"},
+  {titre:"Team building PME — BBQ terrasse",ville:"Bordeaux",date:"6 septembre",personnes:"25 personnes",desc:"Événement d'entreprise convivial. Terrasse privatisée. Besoin d'un pro ponctuel.",budget:"350–550€",reponses:6,theme:"Team building",postedAgo:"Hier à 17:55"},
+  {titre:"Mariage champêtre — BBQ le soir",ville:"Toulouse",date:"23 août",personnes:"80 personnes",desc:"Mariage en domaine agricole. On veut un vrai pitmaster pas un traiteur. Sud-Ouest.",budget:"600–900€",reponses:0,theme:"Mariage & événements",postedAgo:"Aujourd'hui à 07:21"},
+  {titre:"Soirée entre amis — 20 personnes",ville:"Nantes",date:"12 juillet",personnes:"20 personnes",desc:"Soirée chill entre potes, jardin en ville. Budget serré mais on veut bien manger !",budget:"150–250€",reponses:2,postedAgo:"Hier à 22:10"},
+  {titre:"BBQ d'entreprise — 50 personnes",ville:"Marseille",date:"15 septembre",personnes:"50 personnes",desc:"Afterwork d'été dans nos locaux avec grande terrasse. Option halal indispensable.",budget:"400–600€",reponses:4,theme:"Team building",postedAgo:"Hier à 14:03"},
 ];
 
 let villeFiltre='';
@@ -1023,7 +1033,8 @@ function renderPM(){
     <div class="avatar ${p.av}">${p.init}</div>
     <div class="pcard-info">
       <div class="pcard-name">${p.name}</div>
-      <div class="pcard-loc">${p.dispo?'<div class="dispo-dot"></div>':''} ${p.ville}${p.dispo?' · Disponible':''}</div>
+      <div class="pcard-loc">${p.dispo?'<div class="dispo-dot"></div>':''} ${p.ville}${p.dispo?' · Disponible':' · Indisponible'}</div>
+      ${p.activeAgo?`<div class="pcard-active"><div class="active-dot-sm"></div> Actif il y a ${p.activeAgo}</div>`:''}
     </div>
   </div>
   <div class="pcard-body">
@@ -1040,15 +1051,24 @@ function renderPM(){
 
 document.getElementById('grid-ann').innerHTML=annonces.map((a,i)=>`
 <div class="acard reveal">
-  <div class="acard-head"><div class="acard-title">${a.titre}</div><div class="acard-badge">Client</div></div>
+  <div class="acard-head">
+    <div class="acard-title">${a.titre}</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      ${a.theme?`<span style="font-size:10px;font-weight:600;background:#FEF0E8;color:var(--fire);border-radius:20px;padding:2px 9px;white-space:nowrap">🏷 ${a.theme}</span>`:'<span class="acard-badge">Client</span>'}
+    </div>
+  </div>
   <div class="acard-meta">
     <span><i class="ti ti-map-pin" aria-hidden="true"></i>${a.ville}</span>
     <span><i class="ti ti-calendar" aria-hidden="true"></i>${a.date}</span>
     <span><i class="ti ti-users" aria-hidden="true"></i>${a.personnes}</span>
+    ${a.postedAgo?`<span style="color:var(--muted)"><i class="ti ti-clock" aria-hidden="true"></i>${a.postedAgo}</span>`:''}
   </div>
   <div class="acard-desc">${a.desc}</div>
   <div class="acard-footer">
-    <div class="budget">Budget : ${a.budget}</div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <div class="budget">Budget : ${a.budget}</div>
+      ${a.reponses>0?`<div style="font-size:11px;color:var(--muted)">${a.reponses} réponse${a.reponses>1?'s':''}</div>`:'<div style="font-size:11px;color:#22C55E;font-weight:500">Soyez le premier à répondre !</div>'}
+    </div>
     <button class="btn-repondre" onclick="openChatAnnonce(${i})">Répondre</button>
   </div>
 </div>`).join('');
@@ -2910,6 +2930,14 @@ async function submitAnnonce() {
 #page-pitmaster-dashboard .fg textarea:hover{border-color:#C0B8A8;background:#fff}
 #page-pitmaster-dashboard .fg input:focus,
 #page-pitmaster-dashboard .fg textarea:focus{border-color:var(--fire)!important;background:#fff;box-shadow:0 0 0 3px rgba(212,66,10,0.08);outline:none}
+/* Photo upload */
+.pm-avatar-photo{background-size:cover;background-position:center;font-size:0!important;border:3px solid rgba(255,255,255,0.3)!important}
+.pm-photo-wrap{position:relative;width:90px;flex-shrink:0}
+.pm-photo-img{width:90px;height:90px;border-radius:50%;object-fit:cover;display:block;border:3px solid var(--border)}
+.pm-photo-placeholder{width:90px;height:90px;border-radius:50%;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:11px;gap:4px;background:var(--bg2);text-align:center;line-height:1.4;transition:all 0.2s}
+.pm-photo-placeholder:hover{border-color:var(--fire);color:var(--fire);background:#FEF0E8}
+.pm-photo-edit-btn{position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:var(--fire);color:#fff;border:2px solid white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:transform 0.15s}
+.pm-photo-edit-btn:hover{transform:scale(1.1)}
 @media(max-width:700px){
   .pm-hero-inner{gap:1rem}
   .pm-avail-card{width:100%}
@@ -3038,6 +3066,7 @@ async function submitAnnonce() {
       return;
     }
     _renderHero();
+    if(_pm?.id) sb.from('pitmasters').update({last_seen:new Date().toISOString()}).eq('id',_pm.id).catch(()=>{});
     tab('profil', document.querySelector('.pm-tab'));
     _loadStats();
   }
@@ -3048,7 +3077,17 @@ async function submitAnnonce() {
     const avs = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10'];
     const av = avs[(_pm.nom||'a').charCodeAt(0) % avs.length];
     const avEl = document.getElementById('pm-avatar');
-    if(avEl){ avEl.className='pm-avatar '+av; avEl.textContent=(_pm.nom||'?')[0].toUpperCase(); }
+    if(avEl){
+      if(_pm.photo_url){
+        avEl.className='pm-avatar pm-avatar-photo';
+        avEl.style.backgroundImage='url('+_pm.photo_url+')';
+        avEl.textContent='';
+      } else {
+        avEl.className='pm-avatar '+av;
+        avEl.style.backgroundImage='';
+        avEl.textContent=(_pm.nom||'?')[0].toUpperCase();
+      }
+    }
     const tEl = document.getElementById('pm-title'); if(tEl) tEl.textContent=_pm.nom||'';
     const sEl = document.getElementById('pm-hspec'); if(sEl) sEl.textContent=_pm.specialite||'';
     _setAvailUI(_pm.actif !== false);
@@ -3136,6 +3175,22 @@ async function submitAnnonce() {
     const shareUrl = 'https://allobraise.fr';
     el.innerHTML=`
     <div class="pm-section">
+      <div class="pm-shead">Photo de profil</div>
+      <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+        ${_pm.photo_url
+          ? `<div class="pm-photo-wrap"><img class="pm-photo-img" id="pm-photo-preview" src="${_e(_pm.photo_url)}" alt="Photo de profil"><div class="pm-photo-edit-btn" onclick="document.getElementById('pm-photo-input').click()"><i class="ti ti-pencil"></i></div></div>`
+          : `<div class="pm-photo-placeholder" onclick="document.getElementById('pm-photo-input').click()"><i class="ti ti-camera" style="font-size:1.6rem"></i><span>Ajouter<br>ma photo</span></div>`
+        }
+        <div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;max-width:300px">Une photo professionnelle augmente vos contacts de <strong>3×</strong>. Format JPG ou PNG, max 5 Mo.</p>
+          <input type="file" id="pm-photo-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="PMDash.uploadPhoto(this)">
+          <button class="pm-btn pm-btn-outline" onclick="document.getElementById('pm-photo-input').click()" style="margin-top:.75rem;font-size:13px">
+            <i class="ti ti-upload"></i> ${_pm.photo_url ? 'Changer la photo' : 'Ajouter ma photo'}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="pm-section">
       <div class="pm-shead">Informations de mon profil</div>
       <div class="pm-grid2">
         <div class="fg"><label>Pseudo / Nom de marque</label><input type="text" id="pme-nom" value="${_e(_pm.nom||'')}" placeholder="Le Gros Fumeur"></div>
@@ -3189,6 +3244,31 @@ async function submitAnnonce() {
       if(typeof toast==='function') toast('Erreur de sauvegarde','error','❌');
     }
     if(btn){ btn.innerHTML='<i class="ti ti-device-floppy"></i> Enregistrer les modifications'; btn.disabled=false; }
+  }
+
+  async function uploadPhoto(input){
+    const file=input.files?.[0];
+    if(!file||!_pm) return;
+    if(file.size>5*1024*1024){if(typeof toast==='function') toast('Photo trop grande (max 5 Mo)','error','⚠️');return;}
+    if(typeof toast==='function') toast('Upload en cours...','success','⏳');
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+    const path=_pm.id+'/avatar.'+ext;
+    try{
+      const {error:upErr}=await sb.storage.from('pitmaster-photos').upload(path,file,{upsert:true,contentType:file.type});
+      if(upErr) throw upErr;
+      const {data:{publicUrl}}=sb.storage.from('pitmaster-photos').getPublicUrl(path);
+      const {error:dbErr}=await sb.from('pitmasters').update({photo_url:publicUrl}).eq('id',_pm.id);
+      if(dbErr) throw dbErr;
+      _pm.photo_url=publicUrl;
+      _renderHero();
+      const prev=document.getElementById('pm-photo-preview');
+      if(prev){prev.src=publicUrl+'?t='+Date.now();}
+      else{_renderProfil();}
+      if(typeof toast==='function') toast('Photo mise à jour ! 🔥','success','✅');
+    }catch(ex){
+      if(typeof toast==='function') toast('Erreur : '+(ex.message||'upload impossible'),'error','❌');
+    }
+    input.value='';
   }
 
   function copyLink(){
@@ -3366,7 +3446,7 @@ async function submitAnnonce() {
 
   // ── PUBLIC API ──
   window.PMDash = {
-    tab, toggleAvail, saveProfil, copyLink,
+    tab, toggleAvail, saveProfil, copyLink, uploadPhoto,
     open: openDash
   };
 
@@ -3389,6 +3469,129 @@ async function submitAnnonce() {
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     V7 : RECHERCHE PAR VILLE + VILLES AVOISINANTES (style Booking)
+══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  // French cities dataset [name, lat, lng]
+  const C=[
+    ['Paris',48.8566,2.3522],['Marseille',43.2965,5.3698],['Lyon',45.764,4.8357],
+    ['Toulouse',43.6047,1.4442],['Nice',43.7102,7.262],['Nantes',47.2184,-1.5536],
+    ['Strasbourg',48.5734,7.7521],['Montpellier',43.6109,3.8772],['Bordeaux',44.8378,-0.5792],
+    ['Lille',50.6292,3.0573],['Rennes',48.1173,-1.6778],['Reims',49.2583,4.0317],
+    ['Le Havre',49.4938,0.1077],['Saint-Étienne',45.4347,4.3922],['Toulon',43.1242,5.928],
+    ['Grenoble',45.1885,5.7245],['Dijon',47.322,5.0415],['Angers',47.4784,-0.5632],
+    ['Nîmes',43.8367,4.3601],['Villeurbanne',45.7665,4.8796],['Vénissieux',45.6966,4.8894],
+    ['Le Mans',48.0061,0.1996],['Aix-en-Provence',43.5297,5.4474],['Clermont-Ferrand',45.7772,3.087],
+    ['Brest',48.3904,-4.4861],['Tours',47.3941,0.6848],['Amiens',49.8941,2.2959],
+    ['Limoges',45.8336,1.2611],['Metz',49.1193,6.1757],['Perpignan',42.6887,2.8948],
+    ['Besançon',47.2378,6.0241],['Orléans',47.9029,1.9092],['Mulhouse',47.7508,7.3359],
+    ['Rouen',49.4431,1.0993],['Caen',49.1829,-0.3707],['Nancy',48.6921,6.1844],
+    ['Avignon',43.9493,4.8055],['Poitiers',46.5802,0.3404],['La Rochelle',46.1603,-1.1511],
+    ['Cannes',43.5513,7.0128],['Antibes',43.5804,7.1233],['Pau',43.2951,-0.3708],
+    ['Bayonne',43.4929,-1.4748],['Colmar',48.079,7.3582],['Troyes',48.2973,4.0744],
+    ['Lorient',47.7485,-3.3674],['Quimper',47.9973,-4.0972],['Niort',46.3232,-0.4583],
+    ['Chambéry',45.5646,5.9178],['Valence',44.9334,4.8924],['Montauban',44.0176,1.3547],
+    ['Calais',50.9513,1.8587],['Dunkerque',51.0343,2.3767],['Valenciennes',50.3578,3.5236],
+    ['Arras',50.2921,2.7764],['Tarbes',43.2328,0.0781],['Agen',44.2011,0.6204],
+    ['Périgueux',45.1851,0.7219],['Angoulême',45.6497,0.1561],['Chartres',48.4469,1.4882],
+    ['Évreux',49.0281,1.1499],['Versailles',48.8014,2.1301],['Béziers',43.3441,3.2156],
+    ['Sète',43.4065,3.6962],['Narbonne',43.1847,3.0027],['Carcassonne',43.2127,2.3534],
+    ['Albi',43.9277,2.1482],['Rodez',44.3509,2.5725],['Digne-les-Bains',44.0928,6.2369],
+    ['Draguignan',43.5386,6.4655],['Fréjus',43.4329,6.7369],['Grasse',43.6614,6.9238],
+    ['Menton',43.7764,7.5046],['Hyères',43.1199,6.1282],['Arles',43.6767,4.6278],
+    ['Martigues',43.4055,5.0485],['Aubagne',43.2946,5.5693],['Salon-de-Provence',43.6404,5.0966],
+    ['Orange',44.1363,4.8091],['Carpentras',44.0556,5.0527],['Manosque',43.8346,5.7885],
+    ['Dax',43.7098,-1.0545],['Mont-de-Marsan',43.8893,-0.5026],['Brive-la-Gaillarde',45.1576,1.5309],
+    ['Cahors',44.4474,1.4424],['Boulogne-sur-Mer',50.7257,1.6148],['Saint-Brieuc',48.5135,-2.7659],
+    ['Vannes',47.6586,-2.7589],['Laval',48.0742,-0.7709],['Charleville-Mézières',49.7708,4.7152],
+    ['Épinal',48.1742,6.4503],['Belfort',47.638,6.8627],['Montélimar',44.5578,4.7506],
+    ['Bourg-en-Bresse',46.2051,5.2256],['Thonon-les-Bains',46.3716,6.4777],['Annecy',45.8992,6.1294],
+    ['Gap',44.5594,6.0783],['Privas',44.7354,4.5996],['Mende',44.52,3.5003],
+  ];
+
+  function km(la1,lo1,la2,lo2){
+    const R=6371,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180;
+    const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;
+    return Math.round(R*2*Math.asin(Math.sqrt(a)));
+  }
+
+  function getSuggestions(q){
+    q=q.trim();
+    if(q.length<2) return [];
+    const ql=q.toLowerCase();
+    // Find direct matches (prefix first, then contains)
+    const pfx=C.filter(c=>c[0].toLowerCase().startsWith(ql));
+    const ctn=C.filter(c=>!c[0].toLowerCase().startsWith(ql)&&c[0].toLowerCase().includes(ql));
+    const matches=[...pfx,...ctn];
+    if(!matches.length) return [];
+    // Use first match as geo center for nearby calculation
+    const [,clat,clon]=matches[0];
+    // Build results: exact matches (km=0 or real), then nearby within 100km
+    const seen=new Set();
+    const res=[];
+    // 1. All direct matches
+    matches.slice(0,4).forEach(([n,la,lo])=>{
+      res.push({n,d:km(clat,clon,la,lo)});
+      seen.add(n);
+    });
+    // 2. Nearby cities within 100km of the first match, not already in list
+    C.map(([n,la,lo])=>({n,d:km(clat,clon,la,lo)}))
+      .filter(x=>x.d<=100&&!seen.has(x.n))
+      .sort((a,b)=>a.d-b.d)
+      .slice(0,8-res.length)
+      .forEach(x=>{res.push(x);seen.add(x.n);});
+    return res.sort((a,b)=>a.d-b.d).slice(0,9);
+  }
+
+  function render(items){
+    const drop=document.getElementById('city-drop');
+    if(!drop) return;
+    if(!items.length){drop.classList.add('hidden');return;}
+    drop.innerHTML=items.map(({n,d})=>`
+      <div class="city-drop-item" data-city="${n}">
+        <span class="city-drop-name"><i class="ti ti-map-pin" style="font-size:12px;color:var(--fire)"></i>${n}</span>
+        <span class="city-drop-km">${d===0?'Votre ville':d+' km'}</span>
+      </div>`).join('');
+    drop.querySelectorAll('.city-drop-item').forEach(el=>{
+      el.addEventListener('mousedown',function(ev){
+        ev.preventDefault();
+        const city=this.dataset.city;
+        const inp=document.getElementById('ville-input');
+        if(inp) inp.value=city;
+        window.villeFiltre=city;
+        document.querySelectorAll('.stag').forEach(s=>s.classList.remove('active'));
+        if(typeof renderPM==='function') renderPM();
+        drop.classList.add('hidden');
+        setTimeout(()=>document.getElementById('main-section')?.scrollIntoView({behavior:'smooth'}),100);
+      });
+    });
+    drop.classList.remove('hidden');
+  }
+
+  window.cityDrop={
+    update:function(v){render(getSuggestions(v));},
+    hide:function(){document.getElementById('city-drop')?.classList.add('hidden');}
+  };
+
+  function attach(){
+    const inp=document.getElementById('ville-input');
+    if(!inp) return;
+    inp.addEventListener('input',function(){cityDrop.update(this.value);});
+    inp.addEventListener('focus',function(){if(this.value.length>=2) cityDrop.update(this.value);});
+    inp.addEventListener('blur',function(){setTimeout(cityDrop.hide,150);});
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Escape'){cityDrop.hide();this.blur();}
+      if(e.key==='Enter'){cityDrop.hide();}
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',attach);
+  else attach();
 })();
 </script>
 </body>
