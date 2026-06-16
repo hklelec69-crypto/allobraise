@@ -1310,67 +1310,11 @@ async function openConversation(convId, otherUser, pitName) {
   subscribeToConv(convId);
 }
 
-async function loadThreadMsgs(convId) {
-  const { data } = await sb.from('messages')
-    .select('*').eq('conversation_id', convId)
-    .order('created_at', { ascending: true });
-  (window.renderThreadMsgs||renderThreadMsgs)(data || []);
-  // Marquer comme lu
-  if (currentUser) {
-    await sb.from('messages').update({ lu: true })
-      .eq('conversation_id', convId).eq('to_user', currentUser.id);
-  }
-}
-
-function renderThreadMsgs(msgs) {
-  const el = document.getElementById('thread-msgs');
-  if (!el) return;
-  if (!msgs.length) { el.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem">Commencez la conversation !</div>`; return; }
-  el.innerHTML = msgs.map(m => {
-    const isMe = m.from_user === currentUser?.id;
-    const time = new Date(m.created_at).toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'});
-    return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">
-      <div class="msg msg-${isMe?'me':'them'}">${m.message}<div class="msg-time">${time}</div></div>
-    </div>`;
-  }).join('');
-  el.scrollTop = el.scrollHeight;
-}
-
-function subscribeToConv(convId) {
-  if (realtimeSub) realtimeSub.unsubscribe();
-  realtimeSub = sb.channel('conv-'+convId)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` },
-      payload => {
-        const el = document.getElementById('thread-msgs');
-        if (!el) return;
-        const m = payload.new;
-        const isMe = m.from_user === currentUser?.id || m.from_user === currentUser?.email;
-        const time = new Date(m.created_at).toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'});
-        const _e = window.escHTML || (s=>s);
-        el.innerHTML += `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">
-          <div class="msg msg-${isMe?'me':'them'}">${_e(m.message)}<div class="msg-time">${time}</div></div>
-        </div>`;
-        el.scrollTop = el.scrollHeight;
-      })
-    .subscribe();
-}
-
-async function sendThreadMsg(convId, toUser, pitName) {
-  if (!currentUser) { toast('Connectez-vous pour envoyer un message', 'error', '⚠️'); return; }
-  const inp = document.getElementById('thread-input');
-  const txt = inp.value.trim();
-  if (!txt) return;
-  inp.value = '';
-  await sb.from('messages').insert({
-    conversation_id: convId,
-    from_user: currentUser.id,
-    to_user: toUser,
-    message: txt,
-    pitmaster_name: pitName,
-    lu: false
-  });
-  await loadThreadMsgs(convId);
-}
+// Stubs — v5-messagerie.js (chargé en fin de page) remplace ces fonctions sur window.
+function loadThreadMsgs(){}
+function renderThreadMsgs(){}
+function subscribeToConv(){}
+function sendThreadMsg(){}
 
 // ── OUVRIR UNE CONVERSATION DEPUIS UN PROFIL ──
 async function startConversation(pitIdx) {
@@ -1585,7 +1529,7 @@ function openModal(type) {
       <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:1rem">— ou —</div>
       <div class="fg"><label>Email</label><input type="email" id="m-email" placeholder="votre@email.com"></div>
       <div class="fg"><label>Mot de passe</label><input type="password" id="m-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()"></div>
-      <button class="btn-submit" onclick="submitLogin()">Se connecter</button>
+      <button class="btn-submit" id="m-login-submit" onclick="submitLogin()">Se connecter</button>
       <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:1rem">Pas de compte ? <a href="#" style="color:var(--fire)" onclick="openModal('inscription')">Inscription gratuite</a></p>
     </div>`;
   } else if (type === 'inscription') {
@@ -1601,7 +1545,7 @@ function openModal(type) {
       <div class="fg"><label>Mot de passe</label><input type="password" id="m-pw" placeholder="minimum 6 caractères"></div>
       <div class="fg"><label>Ville</label><input type="text" id="m-ville" placeholder="Lyon, Vienne..."></div>
       <div class="fg"><label>Je suis...</label><select id="m-role"><option value="client">Un particulier qui cherche un expert BBQ</option><option value="pitmaster">Un expert BBQ qui propose ses services</option></select></div>
-      <button class="btn-submit" onclick="submitInscription()">Créer mon compte gratuitement</button>
+      <button class="btn-submit" id="m-register-submit" onclick="submitInscription()">Créer mon compte gratuitement</button>
       <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:1rem">Déjà un compte ? <a href="#" style="color:var(--fire)" onclick="openModal('connexion')">Se connecter</a></p>
     </div>`;
   } else if (type === 'pitmaster') {
@@ -1649,8 +1593,8 @@ async function submitLogin() {
   const email = document.getElementById('m-email')?.value.trim();
   const pw = document.getElementById('m-pw')?.value;
   if (!email || !pw) { toast('Email et mot de passe obligatoires', 'error', '⚠️'); return; }
-  const btn = document.querySelector('#modal-box .btn-submit');
-  if (btn) { btn.textContent = 'Connexion...'; btn.disabled = true; }
+  const btn = document.getElementById('m-login-submit');
+  if (btn) { btn.textContent = 'Connexion…'; btn.disabled = true; }
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
   if (error) {
     toast('Email ou mot de passe incorrect', 'error', '❌');
@@ -1669,31 +1613,37 @@ async function submitInscription() {
   if (!prenom || !email) { toast('Prénom et email obligatoires', 'error', '⚠️'); return; }
   const pw = document.getElementById('m-pw')?.value;
   if (!pw || pw.length < 6) { toast('Mot de passe minimum 6 caractères', 'error', '⚠️'); return; }
-  const btn = document.querySelector('#modal-box .btn-submit');
-  if (btn) { btn.textContent = 'Création...'; btn.disabled = true; }
+  const btn = document.getElementById('m-register-submit');
+  if (btn) { btn.textContent = 'Création…'; btn.disabled = true; }
   const { data, error } = await sb.auth.signUp({
     email,
     password: pw,
     options: { data: { prenom, ville, role } }
   });
   if (error) {
-    toast(error.message.includes('already') ? 'Email déjà utilisé' : 'Erreur : ' + error.message, 'error', '❌');
+    const msg = error.message.toLowerCase().includes('already') ? 'Cet email est déjà utilisé — connectez-vous !' : 'Erreur : ' + error.message;
+    toast(msg, 'error', '❌');
     if (btn) { btn.textContent = 'Créer mon compte gratuitement'; btn.disabled = false; }
     return;
   }
-  // Email admin
+  // Email admin (non-bloquant)
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INSCRIPTION, {
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_INSCRIPTION, {
       to_email: ADMIN_EMAIL, prenom, email, ville, role, reply_to: email
     });
   } catch(e) {}
+  // Message selon si confirmation email requise ou non
+  const needsConfirm = !data.session;
+  const confirmMsg = needsConfirm
+    ? `Un email de confirmation a été envoyé à <strong>${email}</strong>.<br>Cliquez sur le lien pour activer votre compte.`
+    : `Vous êtes connecté et prêt à trouver votre expert BBQ !`;
   document.getElementById('modal-box').innerHTML = `<div class="modal-head"><h2>Bienvenue !</h2><button class="modal-x" onclick="closeModal()">✕</button></div>
   <div class="modal-body"><div class="form-success">
     <div class="form-success-icon">🎉</div>
     <h3>Compte créé, ${prenom} !</h3>
-    <p>Bienvenue sur Allo Braise !<br>Vous êtes maintenant connecté.</p>
+    <p>${confirmMsg}</p>
   </div></div>`;
-  toast(`Bienvenue ${prenom} ! 🔥`, 'success', '🎉');
+  toast(needsConfirm ? `Vérifiez votre boîte mail, ${prenom} !` : `Bienvenue ${prenom} !`, 'success', '🎉');
 }
 
 async function submitPitmaster() {
@@ -2414,9 +2364,12 @@ async function submitAnnonce() {
         toast('Créez un compte pour contacter un pitmaster','error','⚠️');
         return;
       }
-      const pitEmail=(p._email)||ADMIN_EMAIL; // vrais pitmasters → leur email ; fictifs → admin
-      // convId basé sur email client + email pitmaster (stable, unique)
-      const convId=`${currentUser.email}__${pitEmail}`.replace(/[^a-zA-Z0-9_@.]/g,'_');
+      // Vrais pitmasters : convId basé sur email. Pitmasters démo : convId basé sur nom (unique par pitmaster)
+      const pitEmail=p._email||null;
+      const toUser=pitEmail||ADMIN_EMAIL;
+      const convId=pitEmail
+        ?`${currentUser.email}__${pitEmail}`.replace(/[^a-zA-Z0-9_@.]/g,'_')
+        :`conv__${currentUser.id.replace(/[^a-zA-Z0-9]/g,'').slice(0,14)}__${p.name.replace(/[^a-zA-Z0-9]/g,'_')}`;
 
       const { data }=await sb.from('messages').select('id').eq('conversation_id',convId).limit(1);
       if(!data||data.length===0){
@@ -2424,15 +2377,15 @@ async function submitAnnonce() {
           await sb.from('messages').insert({
             conversation_id:convId,
             from_user:currentUser.id,
-            to_user:pitEmail,           // ← email, pas le nom
+            to_user:toUser,
             message:`Bonjour ! Je suis intéressé(e) par vos prestations BBQ (${esc(p.spec)}). Pouvez-vous me donner vos disponibilités ?`,
             pitmaster_name:p.name,
             lu:false
           });
-          // notif email au pitmaster réel
-          if(p._email){
+          // notif email uniquement pour les vrais pitmasters
+          if(pitEmail){
             try{ await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT, {
-              to_email:p._email, from_name:currentUser.prenom||'Un client',
+              to_email:pitEmail, from_name:currentUser.prenom||'Un client',
               from_email:currentUser.email, pitmaster:p.name,
               message:'Vous avez un nouveau message sur Allo Braise ! Connectez-vous pour répondre.',
               reply_to:currentUser.email
@@ -2445,7 +2398,7 @@ async function submitAnnonce() {
         document.getElementById('msg-panel').classList.add('open');
         document.body.style.overflow='hidden';
       }
-      await openConversation(convId, pitEmail, p.name);
+      await openConversation(convId, toUser, p.name);
     };
     window.startConversation._v3=true;
   }
