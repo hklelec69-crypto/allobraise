@@ -1276,20 +1276,18 @@ async function loadConversations() {
     if (!convs[m.conversation_id]) convs[m.conversation_id] = [];
     convs[m.conversation_id].push(m);
   });
+  const _ea=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   el.innerHTML = `<div class="conv-list" style="flex:1 1 0;overflow-y:auto;min-height:0">${Object.entries(convs).map(([cid, msgs]) => {
     const last = msgs[0];
     const other = last.from_user === currentUser.id ? last.to_user : last.from_user;
     const unread = msgs.some(m => !m.lu && m.to_user === currentUser.id);
     const time = new Date(last.created_at).toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'});
     const name = last.pitmaster_name || other;
-    const safeConvId = cid.replace(/'/g, "\\'");
-    const safeOther = other.replace(/'/g, "\\'");
-    const safeName = name.replace(/'/g, "\\'");
-    return `<div class="conv-item" onclick="openConversation('${safeConvId}','${safeOther}','${safeName}')">
-      <div class="conv-avatar a1">${name[0]}</div>
+    return `<div class="conv-item" data-cid="${_ea(cid)}" data-other="${_ea(other)}" data-pname="${_ea(name)}">
+      <div class="conv-avatar a1">${_ea(name[0]||'?')}</div>
       <div class="conv-info">
-        <div class="conv-name">${name}</div>
-        <div class="conv-preview">${last.message}</div>
+        <div class="conv-name">${_ea(name)}</div>
+        <div class="conv-preview">${_ea(last.message)}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         <div class="conv-time">${time}</div>
@@ -1297,6 +1295,10 @@ async function loadConversations() {
       </div>
     </div>`;
   }).join('')}</div>`;
+  el.querySelector('.conv-list').addEventListener('click',function(e){
+    const item=e.target.closest('.conv-item');
+    if(item) openConversation(item.dataset.cid,item.dataset.other,item.dataset.pname);
+  });
 }
 
 async function openConversation(convId, otherUser, pitName) {
@@ -1307,8 +1309,8 @@ async function openConversation(convId, otherUser, pitName) {
   el.innerHTML = `<div class="chat-thread" style="display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden;height:100%">
     <div class="chat-thread-header">
       <button class="btn-back-conv" onclick="renderMsgPanel()"><i class="ti ti-arrow-left"></i></button>
-      <div class="conv-avatar a1" style="width:32px;height:32px;font-size:0.9rem">${pitName[0]}</div>
-      <div style="flex:1"><div style="font-weight:500;font-size:13px">${pitName}</div></div>
+      <div class="conv-avatar a1" style="width:32px;height:32px;font-size:0.9rem">${(pitName||'?')[0]}</div>
+      <div style="flex:1"><div style="font-weight:500;font-size:13px">${pitName||'Conversation'}</div></div>
     </div>
     <div class="chat-thread-msgs" id="thread-msgs"><div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem">Chargement...</div></div>
     <div class="chat-thread-input">
@@ -1320,11 +1322,11 @@ async function openConversation(convId, otherUser, pitName) {
   subscribeToConv(convId);
 }
 
-// Stubs — v5-messagerie.js (chargé en fin de page) remplace ces fonctions sur window.
-function loadThreadMsgs(){}
-function renderThreadMsgs(){}
-function subscribeToConv(){}
-function sendThreadMsg(){}
+// Stubs — v5-messagerie.js remplace ces fonctions au chargement.
+function loadThreadMsgs(){ console.warn('v5-messagerie.js non chargé'); }
+function renderThreadMsgs(){ console.warn('v5-messagerie.js non chargé'); }
+function subscribeToConv(){ console.warn('v5-messagerie.js non chargé'); }
+function sendThreadMsg(){ if(typeof toast==='function') toast('Rechargez la page','error','⚠️'); }
 
 // ── OUVRIR UNE CONVERSATION DEPUIS UN PROFIL ──
 async function startConversation(pitIdx) {
@@ -1461,8 +1463,11 @@ Tu peux discuter de disponibilités, tarifs, matériel, menu. Si on te demande d
 Ne mentionne jamais que tu es une IA.`;
 
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=>ctrl.abort(), 15000);
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: ctrl.signal,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
@@ -1479,6 +1484,7 @@ Ne mentionne jamais que tu es une IA.`;
         ]
       })
     });
+    clearTimeout(timer);
     const data = await response.json();
     return data.content?.[0]?.text || 'Je vous réponds rapidement ! 🔥';
   } catch (e) {
@@ -1594,6 +1600,7 @@ async function loginGoogle() {
 
 function closeModal() { document.getElementById('modal-wrap').classList.remove('open'); }
 document.getElementById('modal-wrap').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.addEventListener('keydown', function(e) { if(e.key==='Escape') closeModal(); });
 
 
 async function submitLogin() {
