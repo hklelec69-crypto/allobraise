@@ -1180,6 +1180,7 @@ sb.auth.getSession().then(({ data: { session } }) => {
       email: session.user.email,
       prenom: session.user.user_metadata?.prenom || session.user.email.split('@')[0]
     };
+    window.currentUser = currentUser;
     updateNavUser();
   }
 });
@@ -1195,6 +1196,7 @@ sb.auth.onAuthStateChange((event, session) => {
   } else {
     currentUser = null;
   }
+  window.currentUser = currentUser;
   updateNavUser();
 });
 
@@ -1216,6 +1218,7 @@ function updateNavUser() {
 async function signOut() {
   await sb.auth.signOut();
   currentUser = null;
+  window.currentUser = null;
   updateNavUser();
   toast('À bientôt ! 👋', 'success', '👋');
 }
