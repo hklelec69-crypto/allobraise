@@ -2902,6 +2902,14 @@ async function submitAnnonce() {
 /* Loading spinner */
 @keyframes pm-spin{to{transform:rotate(360deg)}}
 .pm-spin{display:inline-block;animation:pm-spin 1s linear infinite}
+/* Input interactions — hover/focus feedback */
+#page-pitmaster-dashboard .fg input,
+#page-pitmaster-dashboard .fg textarea,
+#page-pitmaster-dashboard .fg select{cursor:text;pointer-events:auto}
+#page-pitmaster-dashboard .fg input:hover,
+#page-pitmaster-dashboard .fg textarea:hover{border-color:#C0B8A8;background:#fff}
+#page-pitmaster-dashboard .fg input:focus,
+#page-pitmaster-dashboard .fg textarea:focus{border-color:var(--fire)!important;background:#fff;box-shadow:0 0 0 3px rgba(212,66,10,0.08);outline:none}
 @media(max-width:700px){
   .pm-hero-inner{gap:1rem}
   .pm-avail-card{width:100%}
