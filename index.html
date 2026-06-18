@@ -3226,9 +3226,18 @@ async function submitAnnonce() {
     const cu = window.currentUser;
     if(!cu){ _pm=null; _injectNavBtn(); return; }
     try{
-      const {data} = await sb.from('pitmasters').select('*')
-        .or('user_id.eq.'+cu.id+',email.eq.'+cu.email)
-        .limit(1);
+      let data;
+      if(_pm && _pm.id){
+        // Garde le même profil déjà chargé plutôt que de re-tirer au hasard
+        // parmi plusieurs lignes correspondant au même user_id/email.
+        ({data} = await sb.from('pitmasters').select('*').eq('id', _pm.id).limit(1));
+      }
+      if(!data || !data.length){
+        ({data} = await sb.from('pitmasters').select('*')
+          .or('user_id.eq.'+cu.id+',email.eq.'+cu.email)
+          .order('created_at',{ascending:true})
+          .limit(1));
+      }
       _pm = (data && data[0]) || null;
     }catch(ex){ _pm=null; }
     _injectNavBtn();
