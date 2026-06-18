@@ -93,13 +93,14 @@
       message:txt,pitmaster_name:pitName,lu:false,created_at:new Date().toISOString(),_tmp:true};
     addMsg(tempMsg);
     renderStore();
-    let error=null;
+    let error=null,inserted=null;
     try{
       const res=await sb.from('messages').insert({
         conversation_id:convId,from_user:me.id,to_user:toUser,
         message:txt,pitmaster_name:pitName,lu:false
-      });
+      }).select();
       error=res.error;
+      inserted=res.data&&res.data[0];
     }catch(e){error=e;}
     if(error){
       msgStore=msgStore.filter(m=>m.id!==tempId);
@@ -107,6 +108,11 @@
       renderStore();
       if(inp)inp.value=txt;
       if(typeof toast==='function')toast('Message non envoyé — réessayez','error','⚠️');
+    } else if(inserted){
+      // Confirmation immédiate : ne dépend pas de la réception de l'évènement realtime
+      // pour faire disparaître le statut "envoi…", qui pourrait rester bloqué sinon.
+      addMsg(inserted);
+      renderStore();
     }
   };
   window.sendThreadMsg._v3=true;

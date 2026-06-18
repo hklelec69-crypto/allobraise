@@ -162,11 +162,18 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1rem}
 
 /* CARDS */
-.pcard{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.25s cubic-bezier(.22,1,.36,1)}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.25s cubic-bezier(.22,1,.36,1);position:relative}
 .pcard:hover{border-color:var(--fire);box-shadow:0 8px 32px rgba(212,66,10,0.12);transform:translateY(-4px)}
+.pcard-fav{position:absolute;top:10px;right:10px;z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.9);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;transition:all 0.2s;backdrop-filter:blur(4px)}
+.pcard-fav:hover{transform:scale(1.1);color:#E0245E}
+.pcard-fav.faved{color:#E0245E;border-color:#E0245E}
+.btn-fav-profil{background:none;border:1px solid var(--border);color:rgba(255,255,255,0.7);padding:0.6rem 1rem;border-radius:8px;font-size:13px;font-weight:500;transition:all 0.2s;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-fav-profil:hover{border-color:#E0245E;color:#E0245E}
+.btn-fav-profil.faved{border-color:#E0245E;color:#E0245E;background:rgba(224,36,94,0.08)}
 .pcard-top{padding:1.2rem 1.2rem 0.8rem;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
 .avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1.3rem;font-style:italic;flex-shrink:0;transition:transform 0.3s}
 .pcard:hover .avatar{transform:scale(1.08)}
+.avatar-photo{background-size:cover;background-position:center;font-size:0!important}
 .a1{background:#FEF0E8;color:#C84010}.a2{background:#EAF5EA;color:#2A7A2A}
 .a3{background:#F0EFFE;color:#5040C0}.a4{background:#FFFAE8;color:#B07010}
 .a5{background:#FEE8F0;color:#C02060}.a6{background:#E8F5FE;color:#1070C0}
@@ -506,6 +513,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <p>L'expert se déplace avec son matériel, gère tout de A à Z. Vous n'avez plus qu'à savourer avec vos invités. Simple comme un coup de fil.</p>
         </div>
       </div>
+      <p style="text-align:center;margin-top:1.5rem"><a href="#" onclick="showLegal('faq')" style="color:var(--fire);font-weight:500;text-decoration:none">Voir toutes les questions fréquentes →</a></p>
     </div>
   </div>
 
@@ -579,8 +587,16 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <span class="v4-spec-chip" data-kw="fumoir" onclick="V4.setSpec(this)"><i class="ti ti-flame"></i> Fumoir</span>
           <span class="v4-spec-chip" data-kw="plancha" onclick="V4.setSpec(this)"><i class="ti ti-grill"></i> Plancha</span>
           <span class="v4-spec-chip" data-kw="premium" onclick="V4.setSpec(this)"><i class="ti ti-diamond"></i> Premium</span>
+          <span class="v4-spec-chip" id="v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i> Favoris</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)">
+          <select onchange="V4.setBudget(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
+            <option value="">Tous budgets</option>
+            <option value="0-100">Jusqu'à 100€</option>
+            <option value="100-200">100€ – 200€</option>
+            <option value="200-300">200€ – 300€</option>
+            <option value="300-">300€ et+</option>
+          </select>
           <label>Trier :</label>
           <select onchange="V4.setSort(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
             <option value="">Pertinence</option>
@@ -621,6 +637,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
       </div>
       <div class="footer-col">
         <h4>Infos</h4>
+        <a href="#" onclick="showLegal('faq')">FAQ</a>
         <a href="#" onclick="showLegal('mentions')">À propos & Mentions légales</a>
         <a href="#" onclick="showLegal('cgu')">CGU</a>
         <a href="#" onclick="showLegal('confidentialite')">Confidentialité</a>
@@ -655,6 +672,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <div class="profil-price-sub">à partir de / événement</div>
         </div>
         <button class="btn-solid" id="btn-chat-profil" style="width:100%;padding:0.8rem">Contacter</button>
+        <button class="btn-fav-profil" id="btn-fav-profil"><i class="ti ti-heart" id="fav-profil-icon" aria-hidden="true"></i> <span id="fav-profil-label">Ajouter aux favoris</span></button>
       </div>
     </div>
   </div>
@@ -987,6 +1005,62 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
   </div>
 </div>
 
+<!-- PAGE FAQ -->
+<div id="page-faq" class="hidden">
+  <nav style="display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(255,255,255,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)">
+    <button class="btn-back" onclick="showPage('home')" style="color:var(--dark);font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-arrow-left"></i> Retour</button>
+    <div class="logo" onclick="showPage('home')"><div class="logo-dot"></div> Allo Braise</div>
+    <div style="width:80px"></div>
+  </nav>
+  <div class="legal-hero">
+    <h1>Questions fréquentes</h1>
+    <p>Tout ce qu'il faut savoir avant de réserver ou de devenir expert BBQ</p>
+  </div>
+  <div class="legal-body">
+    <div class="legal-badge"><i class="ti ti-shield-check"></i> Transparence totale · Sans frais cachés</div>
+
+    <h2>Comment fonctionne Allo Braise ?</h2>
+    <h3>Comment réserver un expert BBQ ?</h3>
+    <p>Entrez votre ville, parcourez les profils, et contactez directement l'expert qui vous plaît via la messagerie intégrée. Vous échangez sur le menu, la date et le tarif, sans formulaire interminable.</p>
+    <h3>Allo Braise prend-il une commission ?</h3>
+    <p>Non. L'inscription, la publication d'un profil et la mise en relation sont 100% gratuites. Vous négociez et payez l'expert directement, sans intermédiaire qui prend sa marge.</p>
+    <h3>Dans quelles villes Allo Braise est disponible ?</h3>
+    <p>Plus de 30 villes sont couvertes partout en France, et la recherche affiche aussi les experts disponibles dans les villes voisines de chez vous.</p>
+
+    <h2>Paiement</h2>
+    <h3>Comment se passe le paiement ?</h3>
+    <p>Le paiement se fait <strong>directement entre vous et l'expert</strong>, selon les modalités que vous convenez ensemble (espèces, virement, etc.). Allo Braise ne perçoit, ne détient ni ne transfère aucun fonds — voir nos <a href="#" onclick="showLegal('cgu')" style="color:var(--fire)">CGU</a>.</p>
+    <h3>Faut-il verser un acompte ?</h3>
+    <p>C'est à convenir librement avec l'expert au moment de la réservation. Nous recommandons de toujours clarifier les conditions (acompte, annulation) par écrit dans la conversation avant le jour J.</p>
+
+    <h2>Annulation et imprévus</h2>
+    <h3>Que faire si je dois annuler ?</h3>
+    <p>Prévenez l'expert le plus tôt possible directement via la messagerie. Les conditions d'annulation (remboursement d'acompte, délai) sont propres à chaque expert : pensez à les clarifier avant de réserver.</p>
+    <h3>Et si l'expert ne se présente pas ?</h3>
+    <p>Signalez-le immédiatement à <strong>contact@allobraise.fr</strong>. Nous pouvons suspendre le profil concerné, conformément à nos CGU.</p>
+
+    <h2>Sécurité &amp; confiance</h2>
+    <h3>Les profils sont-ils vérifiés ?</h3>
+    <p>Le badge « Vérifié » indique un profil réellement inscrit et actif sur la plateforme. Allo Braise ne réalise pas de vérification d'identité ou de diplômes systématique : prenez le temps d'échanger avec l'expert et de consulter ses avis avant de réserver, comme vous le feriez pour toute prestation entre particuliers.</p>
+    <h3>Comment fonctionnent les avis ?</h3>
+    <p>Les avis affichés sur un profil proviennent de clients ayant échangé avec l'expert sur la plateforme. Ils ne peuvent pas être modifiés par l'expert concerné.</p>
+    <h3>Je veux signaler un profil ou un comportement</h3>
+    <p>Écrivez-nous à <strong>contact@allobraise.fr</strong> avec l'objet « Signalement » : nous traitons chaque signalement dans les meilleurs délais.</p>
+
+    <h2>Devenir expert BBQ</h2>
+    <h3>Comment créer mon profil expert ?</h3>
+    <p>Cliquez sur « Devenir expert BBQ », remplissez votre profil (spécialité, ville, tarif, photo) — c'est gratuit et ça prend 2 minutes. Vous recevez ensuite les demandes directement par message.</p>
+    <h3>Puis-je mettre mon profil en pause ?</h3>
+    <p>Oui, depuis votre tableau de bord expert vous pouvez activer/désactiver votre disponibilité à tout moment — votre profil reste alors visible uniquement pour vos conversations en cours.</p>
+
+    <div class="legal-footer-nav">
+      <a onclick="showLegal('cgu')">CGU</a>
+      <a onclick="showLegal('confidentialite')">Politique de Confidentialité</a>
+      <a onclick="showPage('home')">← Retour à l'accueil</a>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── CONFIG EMAILJS ──
 const EMAILJS_PUBLIC_KEY = 'VrsW0bkAwp1GvJI0_';
@@ -1011,6 +1085,44 @@ const pitmasters=[
   {init:"C",av:"a11",name:"Ced BBQ",ville:"Strasbourg",spec:"BBQ alsacien & street food",stars:"★★★★☆",rating:4.7,rev:22,prix:115,dispo:true,activeAgo:"5h",desc:"Fusion BBQ et spécialités alsaciennes. Knacks grillées premium, côte de porc marinée, sauce BBQ maison au riesling. Couvre Strasbourg et le Bas-Rhin.",tags:["Alsace","Knacks premium","Street food","Sauce riesling"],avis:[{a:"Nicolas P.",s:"★★★★★",t:"Original et délicieux ! L'Alsace rencontre le BBQ.",d:"Juillet 2025"},{a:"Manon T.",s:"★★★★☆",t:"La sauce au riesling est une tuerie.",d:"Juin 2025"}]},
   {init:"P",av:"a12",name:"Paulo Pitmaster",ville:"Rennes",spec:"BBQ breton & poulet entier à la broche",stars:"★★★★★",rating:4.8,rev:31,prix:125,dispo:true,activeAgo:"12 min",desc:"Spécialiste poulets entiers à la broche et côtelettes marinées. Produits bretons de qualité. Couvre Rennes et l'Ille-et-Vilaine.",tags:["Poulet à la broche","Bretagne","Produits locaux","Classique"],avis:[{a:"Patricia V.",s:"★★★★★",t:"Les poulets étaient parfaitement dorés et juteux.",d:"Juillet 2025"},{a:"Didier M.",s:"★★★★★",t:"Paulo est ponctuel, pro et sympa.",d:"Juillet 2025"}]},
 ];
+
+// ID de conversation canonique (email client + email pitmaster) — partagé par tous
+// les points de contact (chat profil, réservation, contact pitmaster->client) pour
+// qu'une même paire d'utilisateurs retombe toujours dans le même fil de discussion.
+function abConvId(customerEmail, pitEmail){
+  return `${customerEmail}__${pitEmail}`.replace(/[^a-zA-Z0-9_@.]/g,'_');
+}
+
+// Avatar : vraie photo si dispo (pitmasters réels), sinon initiale colorée
+function pmAvatarHtml(p, cls){
+  const _e=window.escHTML||(s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
+  if(p && p.photo_url) return `<div class="${cls} avatar-photo" style="background-image:url('${_e(p.photo_url)}')"></div>`;
+  return `<div class="${cls} ${p?p.av:'a1'}">${_e(p?p.init:'?')}</div>`;
+}
+
+// Favoris : stockés en local (pas besoin de compte), identifiés par nom de pitmaster
+const AB_FAV_KEY='ab_favs';
+let abFavs;
+try{ abFavs=new Set(JSON.parse(localStorage.getItem(AB_FAV_KEY))||[]); }catch(e){ abFavs=new Set(); }
+function abIsFav(name){ return abFavs.has(name); }
+function abToggleFav(e, idx){
+  if(e) e.stopPropagation();
+  const p=pitmasters[idx]; if(!p) return;
+  if(abFavs.has(p.name)) abFavs.delete(p.name); else abFavs.add(p.name);
+  try{ localStorage.setItem(AB_FAV_KEY, JSON.stringify(Array.from(abFavs))); }catch(e){}
+  if(typeof renderPM==='function') renderPM();
+}
+function abRefreshFavProfilBtn(idx){
+  const btn=document.getElementById('btn-fav-profil');
+  const p=pitmasters[idx];
+  if(!btn||!p) return;
+  const faved=abIsFav(p.name);
+  btn.classList.toggle('faved',faved);
+  const icon=document.getElementById('fav-profil-icon');
+  if(icon) icon.className='ti '+(faved?'ti-heart-filled':'ti-heart');
+  const label=document.getElementById('fav-profil-label');
+  if(label) label.textContent=faved?'Dans vos favoris':'Ajouter aux favoris';
+}
 
 const annonces=[
   {titre:"Cherche pitmaster anniversaire surprise — 40 personnes",ville:"Paris",date:"19 juillet",personnes:"40 personnes",desc:"Fête surprise pour les 40 ans de mon mari. Jardin privé en région parisienne. Matériel fourni si possible.",budget:"250–400€",reponses:3,theme:"Anniversaire & fêtes",postedAgo:"Aujourd'hui à 09:14"},
@@ -1037,8 +1149,9 @@ function renderPM(){
   document.getElementById('grid-pm').innerHTML=filtered.length?filtered.map(p=>{
     const idx=pitmasters.indexOf(p);
     return `<div class="pcard reveal" onclick="showProfil(${idx})">
+  <button class="pcard-fav${abIsFav(p.name)?' faved':''}" onclick="abToggleFav(event,${idx})" title="${abIsFav(p.name)?'Retirer des favoris':'Ajouter aux favoris'}" aria-label="Favoris"><i class="ti ${abIsFav(p.name)?'ti-heart-filled':'ti-heart'}" aria-hidden="true"></i></button>
   <div class="pcard-top">
-    <div class="avatar ${p.av}">${p.init}</div>
+    ${pmAvatarHtml(p,'avatar')}
     <div class="pcard-info">
       <div class="pcard-name">${p.name}</div>
       <div class="pcard-loc">${p.dispo?'<div class="dispo-dot"></div>':''} ${p.ville}${(p._dist!=null&&p._dist>0)?' · à '+p._dist+' km':''}${p.dispo?' · Disponible':' · Indisponible'}</div>
@@ -1165,6 +1278,7 @@ function showPage(page){
   document.getElementById('page-cgu').classList.toggle('hidden',page!=='cgu');
   document.getElementById('page-confidentialite').classList.toggle('hidden',page!=='confidentialite');
   document.getElementById('page-mentions').classList.toggle('hidden',page!=='mentions');
+  document.getElementById('page-faq').classList.toggle('hidden',page!=='faq');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1174,8 +1288,16 @@ function showLegal(page){
 
 function showProfil(idx){
   const p=pitmasters[idx];
-  document.getElementById('profil-avatar-big').className='profil-avatar-big '+p.av;
-  document.getElementById('profil-avatar-big').textContent=p.init;
+  const bigAv=document.getElementById('profil-avatar-big');
+  if(p.photo_url){
+    bigAv.className='profil-avatar-big avatar-photo';
+    bigAv.style.backgroundImage="url('"+p.photo_url+"')";
+    bigAv.textContent='';
+  } else {
+    bigAv.className='profil-avatar-big '+p.av;
+    bigAv.style.backgroundImage='';
+    bigAv.textContent=p.init;
+  }
   document.getElementById('profil-name').textContent=p.name;
   document.getElementById('profil-spec').textContent=p.spec;
   document.getElementById('profil-loc').innerHTML=`<i class="ti ti-map-pin"></i> ${p.ville}`;
@@ -1187,6 +1309,9 @@ function showProfil(idx){
   document.getElementById('profil-tags').innerHTML=p.tags.map(t=>`<span class="profil-tag">${_ep(t)}</span>`).join('');
   document.getElementById('profil-avis').innerHTML=p.avis.map(a=>`<div class="avis-item"><div class="avis-top"><span class="avis-author">${_ep(a.a)}</span><span class="avis-stars">${_ep(a.s)}</span></div><div class="avis-text">${_ep(a.t)}</div><div class="avis-date">${_ep(a.d)}</div></div>`).join('');
   document.getElementById('btn-chat-profil').onclick=()=>startConversation(idx);
+  const favBtn=document.getElementById('btn-fav-profil');
+  if(favBtn) favBtn.onclick=()=>{ abToggleFav(null,idx); abRefreshFavProfilBtn(idx); };
+  abRefreshFavProfilBtn(idx);
   showPage('profil');
 }
 
@@ -1331,8 +1456,9 @@ async function loadConversations() {
     const unread = msgs.some(m => !m.lu && m.to_user === currentUser.id);
     const time = new Date(last.created_at).toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'});
     const name = last.pitmaster_name || other;
+    const pmMatch = (typeof pitmasters!=='undefined') ? pitmasters.find(x=>x.name===name) : null;
     return `<div class="conv-item" data-cid="${_ea(cid)}" data-other="${_ea(other)}" data-pname="${_ea(name)}">
-      <div class="conv-avatar a1">${_ea(name[0]||'?')}</div>
+      ${pmMatch ? pmAvatarHtml(pmMatch,'conv-avatar') : '<div class="conv-avatar a1">'+_ea(name[0]||'?')+'</div>'}
       <div class="conv-info">
         <div class="conv-name">${_ea(name)}</div>
         <div class="conv-preview">${_ea(last.message)}</div>
@@ -1950,7 +2076,7 @@ async function submitAnnonce() {
           stars:'★★★★★', rating:5.0, rev:0, prix:prixNum, dispo:true,
           desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
           tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
-          avis:[], _real:true, _email:row.email, _id:row.id
+          avis:[], _real:true, _email:row.email, _id:row.id, photo_url:row.photo_url||null
         });
       });
       if(typeof renderPM === 'function') renderPM();
@@ -2032,7 +2158,7 @@ async function submitAnnonce() {
 
     // 2) Message dans la messagerie interne (même conversation que le chat — routage email)
     try{
-      const convId = `${currentUser.email}__${pitEmail}`.replace(/[^a-zA-Z0-9_@.]/g,'_');
+      const convId = abConvId(currentUser.email,pitEmail);
       await sb.from('messages').insert({
         conversation_id: convId, from_user: currentUser.id, to_user: pitEmail,
         pitmaster_name: pitName, lu:false,
@@ -2430,7 +2556,7 @@ async function submitAnnonce() {
       const pitEmail=p._email||null;
       const toUser=pitEmail||ADMIN_EMAIL;
       const convId=pitEmail
-        ?`${currentUser.email}__${pitEmail}`.replace(/[^a-zA-Z0-9_@.]/g,'_')
+        ?abConvId(currentUser.email,pitEmail)
         :`conv__${currentUser.id.replace(/[^a-zA-Z0-9]/g,'').slice(0,14)}__${p.name.replace(/[^a-zA-Z0-9]/g,'_')}`;
 
       const { data }=await sb.from('messages').select('id').eq('conversation_id',convId).limit(1);
@@ -2500,8 +2626,9 @@ async function submitAnnonce() {
         const sCid=esc(cid).replace(/&#39;/g,"\\'");
         const sOther=esc(other).replace(/&#39;/g,"\\'");
         const sName=esc(name).replace(/&#39;/g,"\\'");
+        const pmMatch=(typeof pitmasters!=='undefined')?pitmasters.find(x=>x.name===name):null;
         return `<div class="conv-item" onclick="openConversation('${sCid}','${sOther}','${sName}')">
-          <div class="conv-avatar a1">${esc((name||'?')[0])}</div>
+          ${pmMatch?pmAvatarHtml(pmMatch,'conv-avatar'):'<div class="conv-avatar a1">'+esc((name||'?')[0])+'</div>'}
           <div class="conv-info"><div class="conv-name">${esc(name)}</div><div class="conv-preview">${esc(last.message)}</div></div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="conv-time">${time}</div>${unread?'<div class="conv-unread"></div>':''}</div>
         </div>`;
@@ -2738,14 +2865,14 @@ async function submitAnnonce() {
     {label:'Plancha',kw:'plancha',icon:'ti-grill'},
     {label:'Premium',kw:'premium',icon:'ti-diamond'}
   ];
-  window.__v4spec=''; window.__v4sort='';
+  window.__v4spec=''; window.__v4sort=''; window.__v4favOnly=false; window.__v4budget='';
 
   function injectControls(){
     const grid=document.getElementById('grid-pm');
     if(!grid||document.getElementById('v4-controls')) return;
     const row=document.createElement('div');
     row.id='v4-controls'; row.className='v4-controls';
-    row.innerHTML=`<div class="v4-spec-row">${SPECS.map((s,i)=>`<span class="v4-spec-chip${i===0?' active':''}" data-kw="${s.kw}" onclick="V4.setSpec(this)"><i class="ti ${s.icon}"></i>${s.label}</span>`).join('')}</div><div class="v4-sort-wrap"><label>Trier :</label><select onchange="V4.setSort(this.value)"><option value="">Pertinence</option><option value="note">Mieux notés</option><option value="prix-asc">Prix ↑</option><option value="prix-desc">Prix ↓</option></select></div>`;
+    row.innerHTML=`<div class="v4-spec-row">${SPECS.map((s,i)=>`<span class="v4-spec-chip${i===0?' active':''}" data-kw="${s.kw}" onclick="V4.setSpec(this)"><i class="ti ${s.icon}"></i>${s.label}</span>`).join('')}<span class="v4-spec-chip" id="v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i>Favoris</span></div><div class="v4-sort-wrap"><select onchange="V4.setBudget(this.value)"><option value="">Tous budgets</option><option value="0-100">Jusqu'à 100€</option><option value="100-200">100€ – 200€</option><option value="200-300">200€ – 300€</option><option value="300-">300€ et+</option></select><label>Trier :</label><select onchange="V4.setSort(this.value)"><option value="">Pertinence</option><option value="note">Mieux notés</option><option value="prix-asc">Prix ↑</option><option value="prix-desc">Prix ↓</option></select></div>`;
     grid.parentNode.insertBefore(row,grid);
   }
 
@@ -2759,9 +2886,19 @@ async function submitAnnonce() {
       return {card,p:m?pitmasters[parseInt(m[1],10)]:null};
     });
     const spec=(window.__v4spec||'').toLowerCase();
+    const favOnly=!!window.__v4favOnly;
+    const budget=window.__v4budget||'';
+    let bMin=0,bMax=Infinity;
+    if(budget){
+      const parts=budget.split('-');
+      bMin=parts[0]?parseInt(parts[0],10):0;
+      bMax=parts[1]?parseInt(parts[1],10):Infinity;
+    }
     let visible=0;
     items.forEach(({card,p})=>{
-      const show=!spec||!p||((p.spec||'')+' '+((p.tags||[]).join(' '))).toLowerCase().includes(spec);
+      let show=!spec||!p||((p.spec||'')+' '+((p.tags||[]).join(' '))).toLowerCase().includes(spec);
+      if(show&&favOnly) show=!!p&&typeof abIsFav==='function'&&abIsFav(p.name);
+      if(show&&budget&&p) show=p.prix>=bMin&&p.prix<=bMax;
       card.style.display=show?'':'none';
       if(show) visible++;
     });
@@ -2781,7 +2918,7 @@ async function submitAnnonce() {
     let note=document.getElementById('v4-empty');
     if(visible===0&&items.length>0){
       if(!note){note=document.createElement('p');note.id='v4-empty';note.style.cssText='color:var(--muted);padding:2rem;grid-column:1/-1;text-align:center';grid.appendChild(note);}
-      note.textContent='Aucun expert pour ce filtre. Essayez une autre spécialité.';note.style.display='';
+      note.textContent=favOnly?'Aucun favori pour le moment. Cliquez sur le ❤ d\'un profil pour l\'ajouter.':'Aucun expert pour ce filtre. Essayez une autre spécialité ou un autre budget.';note.style.display='';
     } else if(note) note.style.display='none';
   }
 
@@ -2792,6 +2929,12 @@ async function submitAnnonce() {
     if(typeof renderPM==='function') renderPM();
   }
   function setSort(v){ window.__v4sort=v||''; if(typeof renderPM==='function') renderPM(); }
+  function toggleFav(el){
+    window.__v4favOnly=!window.__v4favOnly;
+    document.querySelectorAll('#v4-fav-chip').forEach(c=>c.classList.toggle('active',window.__v4favOnly));
+    if(typeof renderPM==='function') renderPM();
+  }
+  function setBudget(v){ window.__v4budget=v||''; if(typeof renderPM==='function') renderPM(); }
 
   function hookRenderPM(){
     if(typeof window.renderPM!=='function'||window.renderPM._v4) return;
@@ -2810,7 +2953,7 @@ async function submitAnnonce() {
     window.addEventListener('scroll',()=>b.classList.toggle('show',window.scrollY>600),{passive:true});
   }
 
-  window.V4={setSpec,setSort};
+  window.V4={setSpec,setSort,toggleFav,setBudget};
 
   function init(){
     injectControls();injectTop();hookRenderPM();
@@ -3377,7 +3520,7 @@ async function submitAnnonce() {
 
   function _contactClient(email, prenom){
     if(!window.currentUser||!_pm||!email) return;
-    const convId=('pm__'+(_pm.id||'x')+'__'+email).replace(/[^a-zA-Z0-9_@.]/g,'_');
+    const convId=(typeof abConvId==='function')?abConvId(email,_pm.email):('pm__'+(_pm.id||'x')+'__'+email).replace(/[^a-zA-Z0-9_@.]/g,'_');
     if(!window.msgPanelOpen){
       window.msgPanelOpen=true;
       document.getElementById('msg-panel')?.classList.add('open');
