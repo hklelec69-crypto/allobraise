@@ -860,7 +860,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
       <li>Données de navigation (pages visitées, durée de session) ;</li>
       <li>Type de navigateur et système d'exploitation.</li>
     </ul>
-    <p>Ces données sont traitées par l'hébergeur (Netlify, Inc.) conformément à ses propres engagements RGPD.</p>
+    <p>Ces données sont traitées par l'hébergeur (Cloudflare, Inc.) conformément à ses propres engagements RGPD.</p>
 
     <h2>Article 3 — Finalités et bases légales du traitement</h2>
     <ul>
@@ -882,7 +882,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
     <h2>Article 5 — Destinataires des données</h2>
     <p>Les données personnelles ne sont transmises qu'aux prestataires techniques strictement nécessaires au fonctionnement de la Plateforme :</p>
     <ul>
-      <li><strong>Netlify, Inc.</strong> (hébergement) — données traitées dans l'UE/EEE ou sous garanties adéquates ;</li>
+      <li><strong>Cloudflare, Inc.</strong> (hébergement / CDN) — données traitées sous garanties adéquates (clauses contractuelles types) ;</li>
       <li><strong>EmailJS</strong> (envoi de notifications email) — données limitées au nécessaire ;</li>
       <li><strong>Supabase</strong> (base de données si activée) — données traitées dans l'UE.</li>
     </ul>
@@ -939,10 +939,10 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
     <p><strong>Directeur de la publication :</strong> Le responsable du projet Allo Braise, joignable à l'adresse : contact@allobraise.fr</p>
 
     <h2>Hébergeur</h2>
-    <p><strong>Netlify, Inc.</strong><br>
-    512 2nd Street, Suite 200<br>
+    <p><strong>Cloudflare, Inc.</strong><br>
+    101 Townsend Street<br>
     San Francisco, CA 94107 — États-Unis<br>
-    Site web : <strong>www.netlify.com</strong></p>
+    Site web : <strong>www.cloudflare.com</strong></p>
     <p>Les données des utilisateurs européens sont traitées conformément au RGPD dans le cadre des garanties contractuelles types de la Commission européenne.</p>
 
     <h2>À propos d'Allo Braise</h2>
@@ -1024,7 +1024,15 @@ const annonces=[
 let villeFiltre='';
 
 function renderPM(){
-  const filtered=villeFiltre?pitmasters.filter(p=>p.ville.toLowerCase().includes(villeFiltre.toLowerCase())):pitmasters;
+  let filtered;
+  if(villeFiltre){
+    filtered=(window.ABGeo&&window.ABGeo.filter)
+      ? window.ABGeo.filter(pitmasters,villeFiltre)
+      : pitmasters.filter(p=>p.ville.toLowerCase().includes(villeFiltre.toLowerCase()));
+  } else {
+    pitmasters.forEach(p=>{p._dist=null;});
+    filtered=pitmasters;
+  }
   document.getElementById('count-pm').textContent=filtered.length;
   document.getElementById('grid-pm').innerHTML=filtered.length?filtered.map(p=>{
     const idx=pitmasters.indexOf(p);
@@ -1033,7 +1041,7 @@ function renderPM(){
     <div class="avatar ${p.av}">${p.init}</div>
     <div class="pcard-info">
       <div class="pcard-name">${p.name}</div>
-      <div class="pcard-loc">${p.dispo?'<div class="dispo-dot"></div>':''} ${p.ville}${p.dispo?' · Disponible':' · Indisponible'}</div>
+      <div class="pcard-loc">${p.dispo?'<div class="dispo-dot"></div>':''} ${p.ville}${(p._dist!=null&&p._dist>0)?' · à '+p._dist+' km':''}${p.dispo?' · Disponible':' · Indisponible'}</div>
       ${p.activeAgo?`<div class="pcard-active"><div class="active-dot-sm"></div> Actif il y a ${p.activeAgo}</div>`:''}
     </div>
   </div>
@@ -1045,7 +1053,24 @@ function renderPM(){
       <button class="btn-contact" onclick="event.stopPropagation();startConversation(${idx})">Contacter</button>
     </div>
   </div>
-</div>`;}).join(''):'<p style="color:var(--muted);padding:2rem;grid-column:1/-1;text-align:center">Aucun expert BBQ pour cette ville — <a href="#" style="color:var(--fire)" onclick="openModal(\'pitmaster\')">devenez le premier à Allo Braise !</a></p>';
+</div>`;}).join(''):'<p style="color:var(--muted);padding:2rem;grid-column:1/-1;text-align:center">Aucun expert BBQ dans cette zone — <a href="#" style="color:var(--fire)" onclick="openModal(\'pitmaster\')">devenez le premier à Allo Braise !</a></p>';
+  // Bandeau contextuel "autour de {ville}" — style Booking / allovoisins
+  (function(){
+    const grid=document.getElementById('grid-pm'); if(!grid) return;
+    let note=document.getElementById('geo-note');
+    const hasNearby=!!villeFiltre&&filtered.some(p=>p._dist!=null);
+    if(hasNearby){
+      if(!note){
+        note=document.createElement('div'); note.id='geo-note';
+        note.style.cssText='font-size:13px;color:var(--muted);margin:0 0 1rem;display:flex;align-items:center;gap:7px';
+        grid.parentNode.insertBefore(note,grid);
+      }
+      const _ev=window.escHTML||(s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+      const r=window.ABGeo?window.ABGeo.RADIUS:100;
+      note.innerHTML='<i class="ti ti-map-pin-filled" style="color:var(--fire)"></i> <span><strong>'+filtered.length+'</strong> expert'+(filtered.length>1?'s':'')+' autour de <strong>'+_ev(villeFiltre)+'</strong> · jusqu\'à '+r+' km</span>';
+      note.style.display='';
+    } else if(note){ note.style.display='none'; }
+  })();
   initReveal();
 }
 
@@ -3513,6 +3538,8 @@ async function submitAnnonce() {
     ['Épinal',48.1742,6.4503],['Belfort',47.638,6.8627],['Montélimar',44.5578,4.7506],
     ['Bourg-en-Bresse',46.2051,5.2256],['Thonon-les-Bains',46.3716,6.4777],['Annecy',45.8992,6.1294],
     ['Gap',44.5594,6.0783],['Privas',44.7354,4.5996],['Mende',44.52,3.5003],
+    ['Vienne',45.5256,4.8745],['Bourgoin-Jallieu',45.5853,5.2741],['Givors',45.5897,4.7689],
+    ['Villefranche-sur-Saône',45.9897,4.7253],['Roanne',46.0341,4.0689],['Vichy',46.1271,3.4204],
   ];
 
   function km(la1,lo1,la2,lo2){
@@ -3549,10 +3576,57 @@ async function submitAnnonce() {
     return res.sort((a,b)=>a.d-b.d).slice(0,9);
   }
 
+  // ── Geo helpers exposed for distance-based pitmaster filtering ──
+  let focusIdx=-1;
+  function coord(name){
+    if(!name) return null;
+    const nl=String(name).trim().toLowerCase();
+    if(!nl) return null;
+    const c=C.find(x=>x[0].toLowerCase()===nl)
+        ||C.find(x=>x[0].toLowerCase().startsWith(nl))
+        ||C.find(x=>x[0].toLowerCase().includes(nl));
+    return c?{name:c[0],lat:c[1],lon:c[2]}:null;
+  }
+  const RADIUS=100; // km — rayon "villes avoisinantes"
+  function filterPitmasters(list,query){
+    list.forEach(p=>{p._dist=null;});
+    const center=coord(query);
+    const ql=String(query||'').trim().toLowerCase();
+    if(!center) return list.filter(p=>(p.ville||'').toLowerCase().includes(ql));
+    const out=[];
+    list.forEach(p=>{
+      const pc=coord(p.ville);
+      const substr=(p.ville||'').toLowerCase().includes(ql);
+      if(pc){
+        const d=km(center.lat,center.lon,pc.lat,pc.lon);
+        if(d<=RADIUS||substr){p._dist=d;out.push(p);}
+      } else if(substr){ out.push(p); }
+    });
+    return out.sort((a,b)=>(a._dist==null?9e9:a._dist)-(b._dist==null?9e9:b._dist));
+  }
+  window.ABGeo={coord,dist:(a,b)=>{const ca=coord(a),cb=coord(b);return (ca&&cb)?km(ca.lat,ca.lon,cb.lat,cb.lon):null;},filter:filterPitmasters,RADIUS};
+
+  function selectCity(city){
+    if(!city) return;
+    const inp=document.getElementById('ville-input');
+    if(inp) inp.value=city;
+    document.querySelectorAll('.stag').forEach(s=>s.classList.remove('active'));
+    // filterVille() lit l'input et met à jour le bon binding villeFiltre, puis renderPM()
+    if(typeof window.filterVille==='function') window.filterVille();
+    else if(typeof renderPM==='function') renderPM();
+    document.getElementById('city-drop')?.classList.add('hidden');
+    setTimeout(()=>document.getElementById('main-section')?.scrollIntoView({behavior:'smooth'}),100);
+  }
+  function highlight(items){
+    items.forEach((it,i)=>it.classList.toggle('cdrop-focus',i===focusIdx));
+    if(items[focusIdx]) items[focusIdx].scrollIntoView({block:'nearest'});
+  }
+
   function render(items){
     const drop=document.getElementById('city-drop');
     if(!drop) return;
     if(!items.length){drop.classList.add('hidden');return;}
+    focusIdx=-1;
     drop.innerHTML=items.map(({n,d})=>`
       <div class="city-drop-item" data-city="${n}">
         <span class="city-drop-name"><i class="ti ti-map-pin" style="font-size:12px;color:var(--fire)"></i>${n}</span>
@@ -3561,14 +3635,7 @@ async function submitAnnonce() {
     drop.querySelectorAll('.city-drop-item').forEach(el=>{
       el.addEventListener('mousedown',function(ev){
         ev.preventDefault();
-        const city=this.dataset.city;
-        const inp=document.getElementById('ville-input');
-        if(inp) inp.value=city;
-        window.villeFiltre=city;
-        document.querySelectorAll('.stag').forEach(s=>s.classList.remove('active'));
-        if(typeof renderPM==='function') renderPM();
-        drop.classList.add('hidden');
-        setTimeout(()=>document.getElementById('main-section')?.scrollIntoView({behavior:'smooth'}),100);
+        selectCity(this.dataset.city);
       });
     });
     drop.classList.remove('hidden');
@@ -3586,8 +3653,16 @@ async function submitAnnonce() {
     inp.addEventListener('focus',function(){if(this.value.length>=2) cityDrop.update(this.value);});
     inp.addEventListener('blur',function(){setTimeout(cityDrop.hide,150);});
     inp.addEventListener('keydown',function(e){
-      if(e.key==='Escape'){cityDrop.hide();this.blur();}
-      if(e.key==='Enter'){cityDrop.hide();}
+      const drop=document.getElementById('city-drop');
+      const items=drop?Array.from(drop.querySelectorAll('.city-drop-item')):[];
+      if(e.key==='Escape'){cityDrop.hide();this.blur();return;}
+      if(!items.length||drop.classList.contains('hidden')) return;
+      if(e.key==='ArrowDown'){e.preventDefault();focusIdx=Math.min(focusIdx+1,items.length-1);highlight(items);}
+      else if(e.key==='ArrowUp'){e.preventDefault();focusIdx=Math.max(focusIdx-1,0);highlight(items);}
+      else if(e.key==='Enter'){
+        if(focusIdx>=0&&items[focusIdx]){e.preventDefault();selectCity(items[focusIdx].dataset.city);}
+        else cityDrop.hide();
+      }
     });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',attach);
