@@ -3466,13 +3466,25 @@ async function submitAnnonce() {
     const prevImg=document.getElementById('pm-photo-preview');
     if(avEl){ avEl.className='pm-avatar pm-avatar-photo'; avEl.style.backgroundImage='url('+localUrl+')'; avEl.textContent=''; }
     if(prevImg){ prevImg.src=localUrl; }
-    if(!(await _requireFreshAuth())){ input.value=''; URL.revokeObjectURL(localUrl); return; }
+    const session=await _ensureSession();
+    if(!session){ input.value=''; URL.revokeObjectURL(localUrl); await _requireFreshAuth(); return; }
     if(typeof toast==='function') toast('Upload en cours...','success','⏳');
     const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
     const path=_pm.id+'/avatar.'+ext;
     try{
-      const {error:upErr}=await sb.storage.from('pitmaster-photos').upload(path,file,{upsert:true,contentType:file.type});
-      if(upErr) throw upErr;
+      // Upload direct via fetch avec le jeton fraîchement vérifié : le client storage-js
+      // peut conserver un Authorization header périmé après un refresh de session.
+      const upRes=await fetch(SUPABASE_URL+'/storage/v1/object/pitmaster-photos/'+path,{
+        method:'POST',
+        headers:{
+          'Authorization':'Bearer '+session.access_token,
+          'apikey':SUPABASE_KEY,
+          'Content-Type':file.type||'application/octet-stream',
+          'x-upsert':'true'
+        },
+        body:file
+      });
+      if(!upRes.ok){ const t=await upRes.text().catch(()=>''); throw new Error(t||('Upload échoué ('+upRes.status+')')); }
       const {data:{publicUrl}}=sb.storage.from('pitmaster-photos').getPublicUrl(path);
       const freshUrl=publicUrl+'?v='+Date.now();
       const {error:dbErr}=await sb.from('pitmasters').update({photo_url:freshUrl}).eq('id',_pm.id);
