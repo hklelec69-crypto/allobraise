@@ -3460,7 +3460,13 @@ async function submitAnnonce() {
     const file=input.files?.[0];
     if(!file||!_pm) return;
     if(file.size>5*1024*1024){if(typeof toast==='function') toast('Photo trop grande (max 5 Mo)','error','⚠️');return;}
-    if(!(await _requireFreshAuth())){ input.value=''; return; }
+    // Aperçu local instantané pendant l'upload, avant tout aller-retour réseau.
+    const localUrl=URL.createObjectURL(file);
+    const avEl=document.getElementById('pm-avatar');
+    const prevImg=document.getElementById('pm-photo-preview');
+    if(avEl){ avEl.className='pm-avatar pm-avatar-photo'; avEl.style.backgroundImage='url('+localUrl+')'; avEl.textContent=''; }
+    if(prevImg){ prevImg.src=localUrl; }
+    if(!(await _requireFreshAuth())){ input.value=''; URL.revokeObjectURL(localUrl); return; }
     if(typeof toast==='function') toast('Upload en cours...','success','⏳');
     const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
     const path=_pm.id+'/avatar.'+ext;
@@ -3468,19 +3474,21 @@ async function submitAnnonce() {
       const {error:upErr}=await sb.storage.from('pitmaster-photos').upload(path,file,{upsert:true,contentType:file.type});
       if(upErr) throw upErr;
       const {data:{publicUrl}}=sb.storage.from('pitmaster-photos').getPublicUrl(path);
-      const {error:dbErr}=await sb.from('pitmasters').update({photo_url:publicUrl}).eq('id',_pm.id);
+      const freshUrl=publicUrl+'?v='+Date.now();
+      const {error:dbErr}=await sb.from('pitmasters').update({photo_url:freshUrl}).eq('id',_pm.id);
       if(dbErr) throw dbErr;
-      _pm.photo_url=publicUrl;
+      _pm.photo_url=freshUrl;
       _renderHero();
-      const prev=document.getElementById('pm-photo-preview');
-      if(prev){prev.src=publicUrl+'?t='+Date.now();}
+      if(prevImg){prevImg.src=freshUrl;}
       else{_renderProfil();}
       if(typeof toast==='function') toast('Photo mise à jour ! 🔥','success','✅');
     }catch(ex){
+      if(avEl){ _renderHero(); }
       if(_isRLSError(ex)){ await _requireFreshAuth(); }
       else if(typeof toast==='function') toast('Erreur : '+(ex.message||'upload impossible'),'error','❌');
     }
     input.value='';
+    URL.revokeObjectURL(localUrl);
   }
 
   function copyLink(){
