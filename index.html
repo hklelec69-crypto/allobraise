@@ -3192,6 +3192,35 @@ async function submitAnnonce() {
     };
   })();
 
+  // ── Vérifie/rafraîchit la session avant une écriture protégée par RLS ──
+  async function _ensureSession(){
+    try{
+      const {data:{session}} = await sb.auth.getSession();
+      if(session) return session;
+    }catch(ex){}
+    try{
+      const {data,error} = await sb.auth.refreshSession();
+      if(!error && data?.session) return data.session;
+    }catch(ex){}
+    return null;
+  }
+
+  async function _requireFreshAuth(){
+    const session = await _ensureSession();
+    if(session) return true;
+    currentUser = null;
+    window.currentUser = null;
+    _pm = null;
+    _injectNavBtn();
+    if(typeof toast==='function') toast('Session expirée, merci de vous reconnecter','error','🔒');
+    if(typeof openModal==='function') openModal('connexion');
+    return false;
+  }
+
+  function _isRLSError(ex){
+    return /row-level security/i.test((ex&&ex.message)||'');
+  }
+
   // ── Load pitmaster profile for logged-in user ──
   async function checkPM(){
     const cu = window.currentUser;
@@ -3273,6 +3302,7 @@ async function submitAnnonce() {
 
   async function toggleAvail(){
     if(!_pm) return;
+    if(!(await _requireFreshAuth())) return;
     const isOn = _pm.actif !== false;
     const newVal = !isOn;
     try{
@@ -3282,7 +3312,8 @@ async function submitAnnonce() {
       _setAvailUI(newVal);
       if(typeof toast==='function') toast(newVal?'Vous êtes maintenant disponible 🔥':'Vous êtes maintenant indisponible','success',newVal?'✅':'⏸');
     }catch(ex){
-      if(typeof toast==='function') toast('Erreur de mise à jour','error','❌');
+      if(_isRLSError(ex)){ await _requireFreshAuth(); }
+      else if(typeof toast==='function') toast('Erreur de mise à jour','error','❌');
     }
   }
 
@@ -3401,6 +3432,7 @@ async function submitAnnonce() {
     const email=document.getElementById('pme-email')?.value.trim();
     if(!nom||!ville){ if(typeof toast==='function') toast('Nom et ville obligatoires','error','⚠️'); return; }
     const btn=document.getElementById('pme-save');
+    if(!(await _requireFreshAuth())) return;
     if(btn){ btn.innerHTML='<i class="ti ti-loader-2 pm-spin"></i> Enregistrement...'; btn.disabled=true; }
     try{
       const {error}=await sb.from('pitmasters').update({nom,ville,specialite:spec,tarif,description:desc,email}).eq('id',_pm.id);
@@ -3409,7 +3441,8 @@ async function submitAnnonce() {
       _renderHero();
       if(typeof toast==='function') toast('Profil mis à jour ! 🔥','success','✅');
     }catch(ex){
-      if(typeof toast==='function') toast('Erreur de sauvegarde','error','❌');
+      if(_isRLSError(ex)){ await _requireFreshAuth(); }
+      else if(typeof toast==='function') toast('Erreur de sauvegarde','error','❌');
     }
     if(btn){ btn.innerHTML='<i class="ti ti-device-floppy"></i> Enregistrer les modifications'; btn.disabled=false; }
   }
@@ -3418,6 +3451,7 @@ async function submitAnnonce() {
     const file=input.files?.[0];
     if(!file||!_pm) return;
     if(file.size>5*1024*1024){if(typeof toast==='function') toast('Photo trop grande (max 5 Mo)','error','⚠️');return;}
+    if(!(await _requireFreshAuth())){ input.value=''; return; }
     if(typeof toast==='function') toast('Upload en cours...','success','⏳');
     const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
     const path=_pm.id+'/avatar.'+ext;
@@ -3434,7 +3468,8 @@ async function submitAnnonce() {
       else{_renderProfil();}
       if(typeof toast==='function') toast('Photo mise à jour ! 🔥','success','✅');
     }catch(ex){
-      if(typeof toast==='function') toast('Erreur : '+(ex.message||'upload impossible'),'error','❌');
+      if(_isRLSError(ex)){ await _requireFreshAuth(); }
+      else if(typeof toast==='function') toast('Erreur : '+(ex.message||'upload impossible'),'error','❌');
     }
     input.value='';
   }
