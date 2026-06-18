@@ -2979,19 +2979,20 @@ async function submitAnnonce() {
       .order('created_at', { ascending:false })
       .then(({data, error})=>{
         if(error || !data || !data.length) return;
+        const _e = window.escHTML || (s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
         const existing = new Set(pitmasters.map(p=>(p.name||'').toLowerCase()));
         const av = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12'];
         data.forEach((row,i)=>{
-          if(existing.has((row.nom||'').toLowerCase())) return;
+          if(existing.has(_e(row.nom||'').toLowerCase())) return;
           const prix = parseInt((row.tarif||'').replace(/[^0-9]/g,'')) || 100;
           pitmasters.push({
-            init:(row.nom||'?').trim()[0].toUpperCase(),
+            init:_e((row.nom||'?').trim()[0].toUpperCase()),
             av:av[(pitmasters.length+i)%av.length],
-            name:row.nom, ville:row.ville||'France',
-            spec:row.specialite||'BBQ à domicile',
+            name:_e(row.nom), ville:_e(row.ville||'France'),
+            spec:_e(row.specialite||'BBQ à domicile'),
             stars:'★★★★★', rating:5.0, rev:0, prix:prix, dispo:true,
-            desc:row.description||'Expert BBQ disponible pour vos événements.',
-            tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>s.trim()).filter(Boolean).slice(0,5),
+            desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
+            tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
             avis:[], _real:true, _email:row.email, _id:row.id
           });
         });
