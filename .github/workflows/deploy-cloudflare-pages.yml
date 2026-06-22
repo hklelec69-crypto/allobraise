@@ -14,6 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check inline JS syntax (index.html)
+        run: node .github/scripts/check-inline-js.js
+
+      - name: Check v5-messagerie.js syntax
+        run: node --check v5-messagerie.js
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
