@@ -2291,27 +2291,42 @@ async function submitAnnonce() {
     const fab=document.getElementById('v2-fab-demandes');
     const demandes=(fab && fab._demandes)||[];
     const box=document.getElementById('modal-box');
+    const _e=window.escHTML||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
+    box._demandes=demandes;
     box.innerHTML=`<div class="modal-head"><h2>Mes demandes reçues</h2><button class="modal-x" onclick="closeModal()">✕</button></div>
-    <div class="modal-body">${demandes.length? demandes.map(r=>{
+    <div class="modal-body">${demandes.length? demandes.map((r,i)=>{
       const statusClass=r.statut==='acceptee'?'v2-status-acceptee':r.statut==='refusee'?'v2-status-refusee':'v2-status-attente';
       const statusTxt=r.statut==='acceptee'?'Acceptée':r.statut==='refusee'?'Refusée':'En attente';
-      return `<div class="v2-demande-card">
+      return `<div class="v2-demande-card" data-ri="${i}">
         <div class="v2-demande-head">
-          <div class="v2-demande-title">${r.client_prenom||'Client'} — ${r.personnes||'?'} pers.</div>
+          <div class="v2-demande-title">${_e(r.client_prenom||'Client')} — ${_e(String(r.personnes||'?'))} pers.</div>
           <span class="v2-status-pill ${statusClass}">${statusTxt}</span>
         </div>
         <div class="v2-demande-meta">
           <span><i class="ti ti-calendar"></i>${r.date_event?new Date(r.date_event).toLocaleDateString('fr'):'?'}</span>
-          <span><i class="ti ti-map-pin"></i>${r.lieu||'?'}</span>
-          <span><i class="ti ti-coin"></i>${r.budget||'à discuter'}</span>
+          <span><i class="ti ti-map-pin"></i>${_e(r.lieu||'?')}</span>
+          <span><i class="ti ti-coin"></i>${_e(r.budget||'à discuter')}</span>
         </div>
         ${r.statut==='attente'?`<div class="v2-demande-actions">
-          <button class="v2-btn-accept" onclick="V2.repondreResa('${r.id}','acceptee','${(r.client_email||'').replace(/'/g,'')}')">Accepter</button>
-          <button class="v2-btn-refuse" onclick="V2.repondreResa('${r.id}','refusee','${(r.client_email||'').replace(/'/g,'')}')">Refuser</button>
-        </div>`:`<div style="font-size:12px;color:var(--muted)">Contact : ${r.client_email||''}</div>`}
+          <button class="v2-btn-accept" data-act="acc">Accepter</button>
+          <button class="v2-btn-refuse" data-act="ref">Refuser</button>
+        </div>`:`<div style="font-size:12px;color:var(--muted)">Contact : ${_e(r.client_email||'')}</div>`}
       </div>`;
     }).join('') : '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">Aucune demande pour l\'instant.<br>Partagez votre profil pour recevoir des réservations !</div>'}</div>`;
     document.getElementById('modal-wrap').classList.add('open');
+    if(!box._demDelegate){
+      box._demDelegate=true;
+      box.addEventListener('click',function(ev){
+        const btn=ev.target.closest('[data-act]');
+        if(!btn) return;
+        const card=btn.closest('.v2-demande-card');
+        const idx=card?parseInt(card.dataset.ri):-1;
+        const r=(box._demandes||[])[idx];
+        if(!r) return;
+        if(btn.dataset.act==='acc') repondreResa(r.id,'acceptee',r.client_email||'');
+        else if(btn.dataset.act==='ref') repondreResa(r.id,'refusee',r.client_email||'');
+      });
+    }
   }
 
   async function repondreResa(id, statut, clientEmail){
