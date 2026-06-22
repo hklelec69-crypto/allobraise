@@ -1262,12 +1262,13 @@ document.addEventListener('click', function(e) {
     }).catch(e=>console.error('EmailJS contact send failed:',e));
     setTimeout(() => {
       const sticky = document.querySelector('.profil-sticky');
+      const _ec=window.escHTML||(s=>String(s??''));
       if (sticky) sticky.innerHTML = `<div class="form-success">
         <div class="form-success-icon">🔥</div>
         <h3>Message envoyé !</h3>
-        <p>${pitName} a reçu votre demande.<br>Réponse sous 24h sur <strong>${email}</strong></p>
+        <p>${_ec(pitName)} a reçu votre demande.<br>Réponse sous 24h sur <strong>${_ec(email)}</strong></p>
       </div>`;
-      toast(`Message envoyé à ${pitName} !`, 'success', '✅');
+      toast(`Message envoyé à ${_ec(pitName)} !`, 'success', '✅');
     }, 800);
   }
 });
@@ -1374,8 +1375,9 @@ function updateNavUser() {
   const navCta = document.querySelector('.nav-cta');
   if (!navCta) return;
   if (currentUser) {
+    const _e=window.escHTML||(s=>String(s??''));
     navCta.innerHTML = `
-      <span style="font-size:13px;color:var(--muted)">Bonjour, <strong>${currentUser.prenom}</strong></span>
+      <span style="font-size:13px;color:var(--muted)">Bonjour, <strong>${_e(currentUser.prenom)}</strong></span>
       <button class="btn-ghost" onclick="toggleMsgPanel()"><i class="ti ti-message-circle"></i> Messages</button>
       <button class="btn-ghost" onclick="signOut()">Déconnexion</button>`;
   } else {
@@ -1480,11 +1482,12 @@ async function openConversation(convId, otherUser, pitName) {
   activeConvOtherUser = otherUser;
   activeConvPitName = pitName;
   const el = document.getElementById('msg-content');
+  const _eo=window.escHTML||(s=>String(s??''));
   el.innerHTML = `<div class="chat-thread" style="display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden;height:100%">
     <div class="chat-thread-header">
       <button class="btn-back-conv" onclick="renderMsgPanel()"><i class="ti ti-arrow-left"></i></button>
-      <div class="conv-avatar a1" style="width:32px;height:32px;font-size:0.9rem">${(pitName||'?')[0]}</div>
-      <div style="flex:1"><div style="font-weight:500;font-size:13px">${pitName||'Conversation'}</div></div>
+      <div class="conv-avatar a1" style="width:32px;height:32px;font-size:0.9rem">${_eo((pitName||'?')[0])}</div>
+      <div style="flex:1"><div style="font-weight:500;font-size:13px">${_eo(pitName)||'Conversation'}</div></div>
     </div>
     <div class="chat-thread-msgs" id="thread-msgs"><div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem">Chargement...</div></div>
     <div class="chat-thread-input">
@@ -1790,7 +1793,8 @@ async function submitLogin() {
     return;
   }
   closeModal();
-  toast(`Bienvenue ${data.user.user_metadata?.prenom || email.split('@')[0]} ! 🔥`, 'success', '👋');
+  const _el=window.escHTML||(s=>String(s??''));
+  toast(`Bienvenue ${_el(data.user.user_metadata?.prenom || email.split('@')[0])} ! 🔥`, 'success', '👋');
 }
 
 async function submitInscription() {
@@ -1822,16 +1826,17 @@ async function submitInscription() {
   } catch(e) {}
   // Message selon si confirmation email requise ou non
   const needsConfirm = !data.session;
+  const _e=window.escHTML||(s=>String(s??''));
   const confirmMsg = needsConfirm
-    ? `Un email de confirmation a été envoyé à <strong>${email}</strong>.<br>Cliquez sur le lien pour activer votre compte.`
+    ? `Un email de confirmation a été envoyé à <strong>${_e(email)}</strong>.<br>Cliquez sur le lien pour activer votre compte.`
     : `Vous êtes connecté et prêt à trouver votre expert BBQ !`;
   document.getElementById('modal-box').innerHTML = `<div class="modal-head"><h2>Bienvenue !</h2><button class="modal-x" onclick="closeModal()">✕</button></div>
   <div class="modal-body"><div class="form-success">
     <div class="form-success-icon">🎉</div>
-    <h3>Compte créé, ${prenom} !</h3>
+    <h3>Compte créé, ${_e(prenom)} !</h3>
     <p>${confirmMsg}</p>
   </div></div>`;
-  toast(needsConfirm ? `Vérifiez votre boîte mail, ${prenom} !` : `Bienvenue ${prenom} !`, 'success', '🎉');
+  toast(needsConfirm ? `Vérifiez votre boîte mail, ${_e(prenom)} !` : `Bienvenue ${_e(prenom)} !`, 'success', '🎉');
 }
 
 async function submitPitmaster() {
@@ -1890,10 +1895,10 @@ async function submitPitmaster() {
   document.getElementById('modal-box').innerHTML = `<div class="modal-head"><h2>Profil publié ! 🔥</h2><button class="modal-x" onclick="closeModal()">✕</button></div>
   <div class="modal-body"><div class="form-success">
     <div class="form-success-icon">🔥</div>
-    <h3>Bienvenue, ${nom} !</h3>
-    <p>Votre profil est maintenant visible sur Allo Braise.<br>Les clients de <strong>${ville}</strong> peuvent vous contacter sur <strong>${email}</strong></p>
+    <h3>Bienvenue, ${_e(nom)} !</h3>
+    <p>Votre profil est maintenant visible sur Allo Braise.<br>Les clients de <strong>${_e(ville)}</strong> peuvent vous contacter sur <strong>${_e(email)}</strong></p>
   </div></div>`;
-  toast(`${nom} est maintenant sur Allo Braise 🔥 ! 🔥`, 'success', '🔥');
+  toast(`${_e(nom)} est maintenant sur Allo Braise 🔥 ! 🔥`, 'success', '🔥');
 }
 
 async function submitAnnonce() {
@@ -1952,7 +1957,7 @@ async function submitAnnonce() {
   <div class="modal-body"><div class="form-success">
     <div class="form-success-icon">📢</div>
     <h3>Votre annonce est en ligne !</h3>
-    <p>Les pitmasters de <strong>${ville||'votre région'}</strong> peuvent maintenant vous répondre.<br>Réponses attendues sur <strong>${email}</strong></p>
+    <p>Les pitmasters de <strong>${_ea(ville)||'votre région'}</strong> peuvent maintenant vous répondre.<br>Réponses attendues sur <strong>${_ea(email)}</strong></p>
   </div></div>`;
   // Switch vers l'onglet annonces
   document.querySelector('.tab:nth-child(2)').click();
@@ -2178,12 +2183,13 @@ async function submitAnnonce() {
     }catch(e){}
 
     const box = document.getElementById('v2-resa-box');
+    const _er=window.escHTML||(s=>String(s??''));
     if(box) box.innerHTML = `<div class="form-success" style="padding:1rem 0">
       <div class="form-success-icon">📅</div>
       <h3 style="color:#fff;font-size:1.1rem">Demande envoyée !</h3>
-      <p style="color:#8C8070">${pitName} a reçu votre demande pour le <strong style="color:#fff">${new Date(date).toLocaleDateString('fr')}</strong>.<br>Réponse rapide par message ou email.</p>
+      <p style="color:#8C8070">${_er(pitName)} a reçu votre demande pour le <strong style="color:#fff">${new Date(date).toLocaleDateString('fr')}</strong>.<br>Réponse rapide par message ou email.</p>
     </div>`;
-    toast(`Demande envoyée à ${pitName} ! 🔥`,'success','📅');
+    toast(`Demande envoyée à ${_er(pitName)} ! 🔥`,'success','📅');
   }
 
   // ─────────────────────────────────────────────
@@ -2452,7 +2458,8 @@ async function submitAnnonce() {
           if(!session && box && box.querySelector('.form-success')){
             // pas de session = confirmation email requise
             const p=box.querySelector('.form-success p');
-            if(p) p.innerHTML=`Un email de confirmation a été envoyé à <strong>${email}</strong>.<br>Cliquez sur le lien pour activer votre compte. 🔥`;
+            const _ec=window.escHTML||(s=>String(s??''));
+            if(p) p.innerHTML=`Un email de confirmation a été envoyé à <strong>${_ec(email)}</strong>.<br>Cliquez sur le lien pour activer votre compte. 🔥`;
           }
         }catch(e){}
       }, 1200);
@@ -2638,16 +2645,19 @@ async function submitAnnonce() {
         const unread=msgs.some(m=>!m.lu && (m.to_user===uid||m.to_user===mail));
         const time=new Date(last.created_at).toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'});
         const name=last.pitmaster_name||other;
-        const sCid=esc(cid).replace(/&#39;/g,"\\'");
-        const sOther=esc(other).replace(/&#39;/g,"\\'");
-        const sName=esc(name).replace(/&#39;/g,"\\'");
         const pmMatch=(typeof pitmasters!=='undefined')?pitmasters.find(x=>x.name===name):null;
-        return `<div class="conv-item" onclick="openConversation('${sCid}','${sOther}','${sName}')">
+        return `<div class="conv-item" data-cid="${esc(cid)}" data-other="${esc(other)}" data-pname="${esc(name)}">
           ${pmMatch?pmAvatarHtml(pmMatch,'conv-avatar'):'<div class="conv-avatar a1">'+esc((name||'?')[0])+'</div>'}
           <div class="conv-info"><div class="conv-name">${esc(name)}</div><div class="conv-preview">${esc(last.message)}</div></div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="conv-time">${time}</div>${unread?'<div class="conv-unread"></div>':''}</div>
         </div>`;
       }).join('')}</div>`;
+      el.querySelectorAll('.conv-item').forEach(item=>{
+        item.addEventListener('click', function(){
+          const {cid,other,pname}=this.dataset;
+          openConversation(cid,other,pname);
+        });
+      });
     };
     window.loadConversations._v3=true;
   }
