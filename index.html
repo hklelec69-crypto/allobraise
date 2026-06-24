@@ -1292,7 +1292,7 @@ function showProfil(idx){
   const bigAv=document.getElementById('profil-avatar-big');
   if(p.photo_url){
     bigAv.className='profil-avatar-big avatar-photo';
-    bigAv.style.backgroundImage="url('"+p.photo_url+"')";
+    bigAv.style.backgroundImage="url('"+(window.escHTML?window.escHTML(p.photo_url):p.photo_url)+"')";
     bigAv.textContent='';
   } else {
     bigAv.className='profil-avatar-big '+p.av;
@@ -2067,11 +2067,11 @@ async function submitAnnonce() {
       const { data, error } = await sb.from('pitmasters')
         .select('*').eq('actif', true).order('created_at', { ascending:false });
       if(error || !data || !data.length) return;
-      const existingNames = new Set(pitmasters.map(p=>p.name.toLowerCase()));
+      const existingIds = new Set(pitmasters.map(p=>p._id).filter(id=>id!=null));
       const avColors = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12'];
       const _e = window.escHTML || (s=>s);
       data.forEach((row,i)=>{
-        if(existingNames.has((row.nom||'').toLowerCase())) return;
+        if(existingIds.has(row.id)) return;
         const prixNum = parseInt((row.tarif||'').replace(/[^0-9]/g,'')) || 100;
         pitmasters.push({
           init:_e((row.nom||'?').trim()[0].toUpperCase()),
@@ -2536,22 +2536,6 @@ async function submitAnnonce() {
   window.validEmail = validEmail;
 
   // ═══════════════════════════════════════════
-  // C1 : SÉCURISER L'AFFICHAGE DES MESSAGES (XSS)
-  // On ré-enrobe renderThreadMsgs et le realtime pour échapper le contenu.
-  // ═══════════════════════════════════════════
-  function patchMessageRendering(){
-    if(typeof window.renderThreadMsgs==='function' && !window.renderThreadMsgs._v3){
-      const orig=window.renderThreadMsgs;
-      window.renderThreadMsgs=function(msgs){
-        // échappe le message de chaque entrée avant rendu
-        const safe=(msgs||[]).map(m=>Object.assign({}, m, { message: esc(m.message) }));
-        return orig.call(this, safe);
-      };
-      window.renderThreadMsgs._v3=true;
-    }
-  }
-
-  // ═══════════════════════════════════════════
   // C2 : MESSAGERIE — ROUTAGE PAR EMAIL (la grosse réparation)
   // Principe : on identifie destinataire/expéditeur par email (stable).
   // On garde la rétrocompat avec l'id pour ne rien casser.
@@ -2662,28 +2646,6 @@ async function submitAnnonce() {
     window.loadConversations._v3=true;
   }
 
-  // sendThreadMsg : marquer from_user=id mais router to_user correctement,
-  // et déclencher une notif email au destinataire réel.
-  function patchSendThreadMsg(){
-    if(typeof window.sendThreadMsg!=='function' || window.sendThreadMsg._v3) return;
-    const orig=window.sendThreadMsg;
-    window.sendThreadMsg=async function(convId, toUser, pitName){
-      if(!currentUser){ toast('Connectez-vous pour envoyer un message','error','⚠️'); return; }
-      const inp=document.getElementById('thread-input');
-      const txt=(inp?inp.value:'').trim();
-      if(!txt) return;
-      if(inp) inp.value='';
-      try{
-        await sb.from('messages').insert({
-          conversation_id:convId, from_user:currentUser.id,
-          to_user:toUser, message:txt, pitmaster_name:pitName, lu:false
-        });
-      }catch(e){ toast('Message non envoyé, réessayez','error','⚠️'); if(inp) inp.value=txt; return; }
-      if(typeof loadThreadMsgs==='function') await loadThreadMsgs(convId);
-    };
-    window.sendThreadMsg._v3=true;
-  }
-
   // ═══════════════════════════════════════════
   // C1bis : SÉCURISER submitAvis et loadRealAvis (XSS sur avis)
   // On ré-enrobe les fonctions V2 exposées.
@@ -2780,7 +2742,7 @@ async function submitAnnonce() {
       const nom=document.getElementById('pm-nom')?.value.trim();
       if(nom){
         try{
-          const { data }=await sb.from('pitmasters').select('id').ilike('nom', nom).limit(1);
+          const { data }=await sb.from('pitmasters').select('id').ilike('nom', nom.replace(/[%_]/g,c=>'\\'+c)).limit(1);
           if(data && data.length){
             toast('Ce nom de pitmaster existe déjà, choisissez-en un autre','error','⚠️');
             return;
@@ -2827,10 +2789,8 @@ async function submitAnnonce() {
   // INIT — applique tous les correctifs
   // ═══════════════════════════════════════════
   function applyAll(){
-    patchMessageRendering();
     patchStartConversation();
     patchLoadConversations();
-    patchSendThreadMsg();
     patchAvisXSS();
     patchDateMin();
     patchProfilDuplicate();
@@ -3005,10 +2965,10 @@ async function submitAnnonce() {
       .then(({data, error})=>{
         if(error || !data || !data.length) return;
         const _e = window.escHTML || (s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
-        const existing = new Set(pitmasters.map(p=>(p.name||'').toLowerCase()));
+        const existingIds = new Set(pitmasters.map(p=>p._id).filter(id=>id!=null));
         const av = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12'];
         data.forEach((row,i)=>{
-          if(existing.has(_e(row.nom||'').toLowerCase())) return;
+          if(existingIds.has(row.id)) return;
           const prix = parseInt((row.tarif||'').replace(/[^0-9]/g,'')) || 100;
           pitmasters.push({
             init:_e((row.nom||'?').trim()[0].toUpperCase()),
@@ -3312,7 +3272,7 @@ async function submitAnnonce() {
     if(avEl){
       if(_pm.photo_url){
         avEl.className='pm-avatar pm-avatar-photo';
-        avEl.style.backgroundImage='url('+_pm.photo_url+')';
+        avEl.style.backgroundImage="url('"+(window.escHTML?window.escHTML(_pm.photo_url):_pm.photo_url)+"')";
         avEl.textContent='';
       } else {
         avEl.className='pm-avatar '+av;
