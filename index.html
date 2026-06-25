@@ -2171,7 +2171,7 @@ async function submitAnnonce() {
       });
     }catch(e){}
 
-    // 3) Email de notification
+    // 3) Email de notification au pitmaster
     try{
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT, {
         to_email: pitEmail, from_name: currentUser.prenom||'Client',
@@ -2179,6 +2179,17 @@ async function submitAnnonce() {
         date_event: date, personnes: pers,
         message:`Nouvelle demande de réservation — ${pers} pers. à ${lieu||'?'}, budget ${budget||'à discuter'}`,
         reply_to: currentUser.email
+      });
+    }catch(e){}
+
+    // 4) Email de confirmation au client
+    try{
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT, {
+        to_email: currentUser.email, from_name: 'Allo Braise',
+        from_email: ADMIN_EMAIL, pitmaster: pitName,
+        date_event: date, personnes: pers,
+        message:`Votre demande de réservation a bien été envoyée à ${pitName} (${pers} pers. le ${date}). Vous recevrez une réponse rapidement.`,
+        reply_to: ADMIN_EMAIL
       });
     }catch(e){}
 
