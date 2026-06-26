@@ -15,6 +15,7 @@ les corrige, vérifie, puis passe au suivant — sans attendre qu'on les lui
 signale.
 
 **Principes non négociables :**
+
 - **Ne jamais livrer en production un changement qu'on ne peut pas vérifier.**
   Si le rendu visuel / la version d'un CDN / un comportement runtime ne peut pas
   être testé depuis l'environnement, ne pas le déployer à l'aveugle — le signaler.
@@ -55,6 +56,7 @@ Application **monofichier, HTML/JS vanilla, sans build, sans framework**.
 - **`robots.txt`, `sitemap.xml`, `404.html`, `og-image.png`** — SEO / branding.
 
 ### Convention critique : les modules sont ADDITIFS
+
 Les modules **patchent** les fonctions globales existantes
 (`window.submitX = async function(){ … orig.apply(…) }`) plutôt que de réécrire
 le cœur. Des **drapeaux** (`._v3`, `._v3email`, `._v3dup`, `._v2hooked`…)
@@ -68,17 +70,18 @@ couches** : c'est intentionnel et fragile. Toujours ajouter de la même manière
 - Projet `ewuxahvqyncovfdkitqp` (région `eu-west-1`).
 - Tables (toutes en **RLS activée**) : `pitmasters`, `reservations`, `messages`,
   `annonces`, `avis`. Colonnes de `reservations` : `id, pitmaster_nom,
-  pitmaster_email, client_id, client_email, client_prenom, date_event,
-  personnes, budget, lieu, statut, created_at`.
+pitmaster_email, client_id, client_email, client_prenom, date_event,
+personnes, budget, lieu, statut, created_at`.
 - L'URL Supabase, la clé `anon`/publishable et la clé publique **EmailJS** sont
   **volontairement exposées côté client** — la sécurité repose sur la **RLS**.
-  Ne jamais les traiter comme des secrets ; ne jamais committer de clé *service
-  role* / secrète.
+  Ne jamais les traiter comme des secrets ; ne jamais committer de clé _service
+  role_ / secrète.
 - **Emails transactionnels** : EmailJS côté client. Constantes `EMAILJS_*` en
   haut du Core dans `index.html`. Tous les templates pointent vers
   `template_m9blhzg`. `ADMIN_EMAIL` reçoit les notifications internes.
 
 ### Avant tout débogage backend
+
 Utiliser `get_advisors` (security + performance) et `get_logs` **avant** toute
 modification. Les écritures DB se font directement sur le projet distant
 (`apply_migration` / `execute_sql`) — prudence, c'est de la prod.
@@ -122,11 +125,13 @@ modification. Les écritures DB se font directement sur le projet distant
 À passer en revue régulièrement et avant tout « lancement » :
 
 **Pipeline / qualité (à lancer avant CHAQUE commit) :**
+
 ```bash
 node .github/scripts/check-inline-js.js   # syntaxe des <script> inline
 node --check v5-messagerie.js             # syntaxe du module messagerie
 npm test                                  # tests unitaires (escHTML, validEmail)
 ```
+
 Ne jamais merger si l'un échoue. Après merge, vérifier que le run GitHub Actions
 « Deploy to Cloudflare Pages » est **success**.
 

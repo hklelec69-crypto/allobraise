@@ -1,0 +1,4 @@
+# Pré-commit : corrige/format les fichiers indexés, puis lance le gate qualité
+# (syntaxe des <script> inline de index.html + module + tests unitaires).
+npx lint-staged
+npm run check

@@ -12,16 +12,16 @@ cachés : le paiement se fait directement entre le client et le pitmaster.
 
 Application **monofichier en HTML/JS vanilla**, sans étape de build ni framework.
 
-| Fichier | Rôle |
-|---|---|
-| `index.html` | Toute l'application : structure, styles inline, et modules JS inline. |
-| `v5-messagerie.js` | Module de messagerie temps réel (chargé séparément). |
-| `robots.txt` / `sitemap.xml` | Référencement. |
-| `_headers` | En-têtes HTTP Cloudflare Pages (dont la CSP). |
-| `netlify.toml` | En-têtes pour un déploiement Netlify (hérité — voir ci-dessous). |
-| `.github/workflows/deploy-cloudflare-pages.yml` | CI + déploiement. |
-| `.github/scripts/check-inline-js.js` | Vérifie la syntaxe de chaque `<script>` inline. |
-| `test/utils.test.js` | Tests unitaires (`escHTML`, `validEmail`). |
+| Fichier                                         | Rôle                                                                  |
+| ----------------------------------------------- | --------------------------------------------------------------------- |
+| `index.html`                                    | Toute l'application : structure, styles inline, et modules JS inline. |
+| `v5-messagerie.js`                              | Module de messagerie temps réel (chargé séparément).                  |
+| `robots.txt` / `sitemap.xml`                    | Référencement.                                                        |
+| `_headers`                                      | En-têtes HTTP Cloudflare Pages (dont la CSP).                         |
+| `netlify.toml`                                  | En-têtes pour un déploiement Netlify (hérité — voir ci-dessous).      |
+| `.github/workflows/deploy-cloudflare-pages.yml` | CI + déploiement.                                                     |
+| `.github/scripts/check-inline-js.js`            | Vérifie la syntaxe de chaque `<script>` inline.                       |
+| `test/utils.test.js`                            | Tests unitaires (`escHTML`, `validEmail`).                            |
 
 ### Modules JS inline
 
@@ -44,13 +44,13 @@ existantes (`window.submitX = …`) sans réécrire le cœur, avec des drapeaux
 
 Projet Supabase (région `eu-west-1`). Toutes les tables ont la **RLS activée**.
 
-| Table | Contenu |
-|---|---|
-| `pitmasters` | Profils d'experts BBQ réels. |
+| Table          | Contenu                                     |
+| -------------- | ------------------------------------------- |
+| `pitmasters`   | Profils d'experts BBQ réels.                |
 | `reservations` | Demandes de réservation client → pitmaster. |
-| `messages` | Messagerie interne (routée par email). |
-| `annonces` | Annonces publiées par les clients. |
-| `avis` | Avis laissés sur les pitmasters. |
+| `messages`     | Messagerie interne (routée par email).      |
+| `annonces`     | Annonces publiées par les clients.          |
+| `avis`         | Avis laissés sur les pitmasters.            |
 
 Les identifiants client (URL Supabase + clé `anon` publishable) et la clé
 publique EmailJS sont volontairement présents côté client — ils sont **conçus

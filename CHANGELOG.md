@@ -1,11 +1,12 @@
 # CHANGELOG
 
-Toutes les évolutions notables du projet. Format inspiré de *Keep a Changelog*.
+Toutes les évolutions notables du projet. Format inspiré de _Keep a Changelog_.
 Dates au format AAAA-MM-JJ.
 
 ## [Non daté — itération CTO] — 2026-06
 
 ### Corrigé
+
 - **annonces** : insert sur colonne `email` inexistante (schéma = `user_email`)
   → chaque publication échouait. Corrigé en `user_email` + `user_prenom`.
 - **avis** : erreur DB avalée par un `catch` vide avec succès affiché malgré
@@ -20,6 +21,7 @@ Dates au format AAAA-MM-JJ.
   `xn--allbraise-i7a.fr` (sitemap/robots).
 
 ### Ajouté
+
 - **SEO** : JSON-LD `LocalBusiness` statique dans le `<head>`, `robots.txt`,
   `sitemap.xml`, `preconnect` vers fonts/jsDelivr/Supabase.
 - **Branding** : OG image de marque 1200×630 (`og-image.png`) générée via
@@ -32,6 +34,7 @@ Dates au format AAAA-MM-JJ.
   (JSON-LD).
 
 ### Sécurité
+
 - Vérifié : en-têtes `_headers` complets (CSP sans `unsafe-eval`, HSTS preload,
   COOP/CORP, Permissions-Policy), RLS active et optimisée sur toutes les tables,
   échappement `escHTML` des sorties utilisateur.
@@ -39,6 +42,7 @@ Dates au format AAAA-MM-JJ.
 ---
 
 ## Antérieur (résumé)
+
 - Connexion Gmail via Zapier (envoi d'emails directs).
 - Corrections XSS (sorties non échappées : signup, login, messagerie,
   réservation, panel demandes, loader homepage).

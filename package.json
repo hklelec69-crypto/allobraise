@@ -2,6 +2,29 @@
   "name": "allobraise",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "node .github/scripts/check-inline-js.js && node --check v5-messagerie.js && node --test",
+    "audit": "node scripts/lighthouse-audit.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix",
+    "*.{json,md,mjs,css}": "prettier --write"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
+    "chrome-launcher": "^1.2.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "lighthouse": "^13.4.0",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.8.5"
   }
 }

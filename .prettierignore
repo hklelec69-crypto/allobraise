@@ -1,0 +1,10 @@
+# Le monofichier et le module sont écrits à la main dans un style compact
+# volontaire ; les reformater produirait un diff massif et risqué.
+index.html
+v5-messagerie.js
+
+# Généré
+node_modules/
+playwright-report/
+test-results/
+package-lock.json
