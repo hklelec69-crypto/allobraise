@@ -5,3 +5,8 @@
 node_modules/
 *.log
 config.local.json
+
+# Sorties de test / audit
+playwright-report/
+test-results/
+lighthouse-report.html

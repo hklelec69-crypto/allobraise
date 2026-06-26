@@ -6,7 +6,8 @@ const scriptTagRe = /<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/g;
 
 // Types de <script> qui ne contiennent pas de JavaScript exécutable (ex. JSON-LD).
 // On les ignore : les parser comme du JS provoquerait de faux positifs.
-const NON_JS_TYPE = /\btype\s*=\s*["']?(application\/ld\+json|application\/json|text\/template|text\/html)["']?/i;
+const NON_JS_TYPE =
+  /\btype\s*=\s*["']?(application\/ld\+json|application\/json|text\/template|text\/html)["']?/i;
 
 let match;
 let index = 0;
