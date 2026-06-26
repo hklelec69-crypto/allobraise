@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://allobraise.fr/sitemap.xml
+Sitemap: https://xn--allbraise-i7a.fr/sitemap.xml
