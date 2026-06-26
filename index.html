@@ -2140,26 +2140,31 @@ async function submitAnnonce() {
       toast('Créez un compte pour réserver','error','⚠️');
       return;
     }
-    const btn = document.querySelector('#v2-resa-box .btn-submit');
-    if(btn){ btn.textContent='Envoi...'; btn.disabled=true; }
-
-    // Trouver l'email du pitmaster
-    let pitEmail = ADMIN_EMAIL;
+    // Trouver l'email réel du pitmaster — les profils de démonstration n'en ont pas
+    let pitEmail = null;
     if(typeof pitmasters!=='undefined'){
       const p = pitmasters.find(x=>x.name===pitName);
       if(p && p._email) pitEmail = p._email;
     }
+    if(!pitEmail){
+      toast('Ce profil est un exemple de démonstration, pas encore disponible à la réservation','error','⚠️');
+      return;
+    }
 
-    // 1) Supabase (table reservations — créée plus bas si absente)
+    const btn = document.querySelector('#v2-resa-box .btn-submit');
+    if(btn){ btn.textContent='Envoi...'; btn.disabled=true; }
+
+    // 1) Supabase (table reservations)
     try{
-      await sb.from('reservations').insert({
+      const { error } = await sb.from('reservations').insert({
         pitmaster_nom: pitName, pitmaster_email: pitEmail,
         client_id: currentUser.id, client_email: currentUser.email,
         client_prenom: currentUser.prenom,
         date_event: date, personnes: parseInt(pers)||null,
         budget, lieu, statut:'attente'
       });
-    }catch(e){ /* table peut ne pas exister encore */ }
+      if(error) toast('Réservation non enregistrée, mais votre demande part tout de même par email','error','⚠️');
+    }catch(e){ toast('Réservation non enregistrée, mais votre demande part tout de même par email','error','⚠️'); }
 
     // 2) Message dans la messagerie interne (même conversation que le chat — routage email)
     try{
