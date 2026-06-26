@@ -4,7 +4,7 @@ Plateforme de mise en relation entre **experts BBQ (« pitmasters »)** et **cli
 souhaitant un barbecue à domicile, partout en France. Sans traiteur, sans frais
 cachés : le paiement se fait directement entre le client et le pitmaster.
 
-> Production : **https://allobraise.fr** (Cloudflare Pages)
+> Production : **https://allôbraise.fr** (domaine `xn--allbraise-i7a.fr`)
 
 ---
 
@@ -92,9 +92,14 @@ Secrets requis dans le dépôt GitHub :
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-> **Note** : un `netlify.toml` subsiste d'un ancien déploiement Netlify
-> (`allôbraise.fr`). Le domaine officiel est **allobraise.fr** sur Cloudflare ;
-> le site Netlify est destiné à être retiré pour éviter le contenu dupliqué.
+> **Domaine & hébergement** : le domaine officiel est **`allôbraise.fr`**
+> (punycode `xn--allbraise-i7a.fr`), actuellement servi par **Netlify** (le repo
+> y est auto-déployé via `netlify.toml`). Le pipeline GitHub Actions déploie en
+> parallèle sur Cloudflare Pages (`allobraise.pages.dev`), qui sert de secours.
+> La balise `canonical` pointe vers le domaine officiel pour éviter tout contenu
+> dupliqué entre les deux hôtes. Le domaine `allobraise.fr` (sans accent) n'est
+> pas possédé : toutes les URL machine utilisent la forme punycode ; les
+> métadonnées HTML et liens de partage utilisent la forme lisible `allôbraise.fr`.
 
 ---
 

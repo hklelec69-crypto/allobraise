@@ -9,8 +9,8 @@
 <meta property="og:title" content="Allo Braise — Experts BBQ à domicile · Partout en France">
 <meta property="og:description" content="L'alternative aux traiteurs hors de prix. Des experts BBQ prêts à se déplacer chez vous partout en France.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://allobraise.fr">
-<meta property="og:image" content="https://allobraise.fr/og-image.png">
+<meta property="og:url" content="https://allôbraise.fr">
+<meta property="og:image" content="https://allôbraise.fr/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Allo Braise — Experts BBQ à domicile partout en France">
@@ -19,10 +19,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Allo Braise — Experts BBQ à domicile · Partout en France">
 <meta name="twitter:description" content="L'alternative aux traiteurs hors de prix. Des experts BBQ prêts à se déplacer chez vous partout en France.">
-<meta name="twitter:image" content="https://allobraise.fr/og-image.png">
+<meta name="twitter:image" content="https://allôbraise.fr/og-image.png">
 <meta name="theme-color" content="#D4420A">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://allobraise.fr">
+<link rel="canonical" href="https://allôbraise.fr">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🔥</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🔥</text></svg>">
 <!-- Resource hints : ouvre les connexions vers les domaines tiers le plus tôt possible -->
@@ -32,7 +32,7 @@
 <link rel="preconnect" href="https://ewuxahvqyncovfdkitqp.supabase.co">
 <!-- Données structurées (statiques, toujours présentes même si le JS échoue) -->
 <script type="application/ld+json" id="v2-jsonld">
-{"@context":"https://schema.org","@type":"LocalBusiness","name":"Allo Braise","description":"Plateforme de mise en relation avec des experts BBQ qui se déplacent à domicile, partout en France.","url":"https://allobraise.fr","image":"https://allobraise.fr/og-image.png","email":"contact@allobraise.fr","priceRange":"€€","areaServed":["France","Lyon","Paris","Marseille","Bordeaux","Toulouse","Lille","Nantes","Strasbourg","Rennes"],"knowsLanguage":"fr-FR"}
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Allo Braise","description":"Plateforme de mise en relation avec des experts BBQ qui se déplacent à domicile, partout en France.","url":"https://allôbraise.fr","image":"https://allôbraise.fr/og-image.png","email":"contact@allobraise.fr","priceRange":"€€","areaServed":["France","Lyon","Paris","Marseille","Bordeaux","Toulouse","Lille","Nantes","Strasbourg","Rennes"],"knowsLanguage":"fr-FR"}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -2382,7 +2382,7 @@ async function submitAnnonce() {
     const sticky=document.querySelector('.profil-sticky');
     if(!sticky || document.getElementById('v2-share-row')) return;
     const pitName=document.getElementById('profil-name')?.textContent||'cet expert BBQ';
-    const url='https://allobraise.fr';
+    const url='https://allôbraise.fr';
     const txt=encodeURIComponent(`Découvre ${pitName} sur Allo Braise — un expert BBQ qui se déplace chez toi ! ${url}`);
     const row=document.createElement('div');
     row.id='v2-share-row';
@@ -2393,7 +2393,7 @@ async function submitAnnonce() {
     sticky.appendChild(row);
   }
   function copyLink(){
-    navigator.clipboard?.writeText('https://allobraise.fr').then(()=>toast('Lien copié ! 🔥','success','🔗')).catch(()=>{});
+    navigator.clipboard?.writeText('https://allôbraise.fr').then(()=>toast('Lien copié ! 🔥','success','🔗')).catch(()=>{});
   }
 
   // ─────────────────────────────────────────────
@@ -2425,7 +2425,7 @@ async function submitAnnonce() {
     ld.textContent=JSON.stringify({
       "@context":"https://schema.org","@type":"LocalBusiness",
       "name":"Allo Braise","description":"Plateforme de mise en relation avec des experts BBQ à domicile, région Lyon et partout en France.",
-      "url":"https://allobraise.fr","areaServed":["Lyon","Villeurbanne","Vienne","Saint-Étienne","Grenoble","France"],
+      "url":"https://allôbraise.fr","areaServed":["Lyon","Villeurbanne","Vienne","Saint-Étienne","Grenoble","France"],
       "priceRange":"€€","email":"contact@allobraise.fr"
     });
     document.head.appendChild(ld);
@@ -3391,7 +3391,7 @@ async function submitAnnonce() {
   function _renderProfil(){
     const el=document.getElementById('pm-tp');
     if(!el||!_pm) return;
-    const shareUrl = 'https://allobraise.fr';
+    const shareUrl = 'https://allôbraise.fr';
     el.innerHTML=`
     <div class="pm-section">
       <div class="pm-shead">Photo de profil</div>
@@ -3515,7 +3515,7 @@ async function submitAnnonce() {
   }
 
   function copyLink(){
-    navigator.clipboard?.writeText('https://allobraise.fr')
+    navigator.clipboard?.writeText('https://allôbraise.fr')
       .then(()=>{ if(typeof toast==='function') toast('Lien copié ! Partagez votre profil 🔥','success','🔗'); })
       .catch(()=>{});
   }
