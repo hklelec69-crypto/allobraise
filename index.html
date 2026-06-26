@@ -1254,7 +1254,7 @@ initReveal();
 })();
 
 // ── CONTACT PROFIL ──
-document.addEventListener('click', function(e) {
+document.addEventListener('click', async function(e) {
   if (e.target && e.target.id === 'btn-send-contact') {
     const prenom = document.getElementById('cnt-prenom')?.value.trim();
     const email = document.getElementById('cnt-email')?.value.trim();
@@ -1263,22 +1263,28 @@ document.addEventListener('click', function(e) {
     const message = document.getElementById('cnt-message')?.value.trim();
     if (!prenom || !email || !message) { toast('Remplissez prénom, email et message', 'error', '⚠️'); return; }
     const pitName = document.getElementById('profil-name')?.textContent || '';
+    const origLabel = e.target.textContent;
     e.target.textContent = 'Envoi...'; e.target.disabled = true;
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT, {
-      to_email: ADMIN_EMAIL, from_name: prenom, from_email: email,
-      pitmaster: pitName, date_event: date||'Non précisé',
-      personnes: pers||'Non précisé', message, reply_to: email
-    }).catch(e=>console.error('EmailJS contact send failed:',e));
-    setTimeout(() => {
-      const sticky = document.querySelector('.profil-sticky');
-      const _ec=window.escHTML||(s=>String(s??''));
-      if (sticky) sticky.innerHTML = `<div class="form-success">
-        <div class="form-success-icon">🔥</div>
-        <h3>Message envoyé !</h3>
-        <p>${_ec(pitName)} a reçu votre demande.<br>Réponse sous 24h sur <strong>${_ec(email)}</strong></p>
-      </div>`;
-      toast(`Message envoyé à ${_ec(pitName)} !`, 'success', '✅');
-    }, 800);
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT, {
+        to_email: ADMIN_EMAIL, from_name: prenom, from_email: email,
+        pitmaster: pitName, date_event: date||'Non précisé',
+        personnes: pers||'Non précisé', message, reply_to: email
+      });
+    } catch(err) {
+      console.error('EmailJS contact send failed:', err);
+      toast('Envoi impossible, vérifiez votre connexion et réessayez', 'error', '⚠️');
+      e.target.textContent = origLabel; e.target.disabled = false;
+      return;
+    }
+    const sticky = document.querySelector('.profil-sticky');
+    const _ec=window.escHTML||(s=>String(s??''));
+    if (sticky) sticky.innerHTML = `<div class="form-success">
+      <div class="form-success-icon">🔥</div>
+      <h3>Message envoyé !</h3>
+      <p>${_ec(pitName)} a reçu votre demande.<br>Réponse sous 24h sur <strong>${_ec(email)}</strong></p>
+    </div>`;
+    toast(`Message envoyé à ${_ec(pitName)} !`, 'success', '✅');
   }
 });
 
@@ -1925,7 +1931,8 @@ async function submitAnnonce() {
   const { error: sbErrAnn } = await sb.from('annonces').insert({
     titre, ville, date_event: date || null,
     personnes: pers ? parseInt(pers) : null,
-    budget, description: desc, email,
+    budget, description: desc,
+    user_email: email, user_prenom: currentUser?.prenom || null,
     user_id: currentUser?.id || null
   });
   if (sbErrAnn) {
@@ -2249,12 +2256,19 @@ async function submitAnnonce() {
     if(!nom||!txt){ toast('Prénom et avis obligatoires','error','⚠️'); return; }
     const btn=document.querySelector('#v2-avis-form .btn-submit');
     if(btn){ btn.textContent='Publication...'; btn.disabled=true; }
+    let avisErr=null;
     try{
-      await sb.from('avis').insert({
+      const { error }=await sb.from('avis').insert({
         pitmaster_nom:pitName, auteur:nom, note:pickedStars,
         texte:txt, client_id:(currentUser?.id)||null
       });
-    }catch(e){}
+      avisErr=error;
+    }catch(e){ avisErr=e; }
+    if(avisErr){
+      toast('Publication impossible, réessayez','error','⚠️');
+      if(btn){ btn.textContent='Publier mon avis'; btn.disabled=false; }
+      return;
+    }
     // Ajout visuel immédiat
     const stars='★'.repeat(pickedStars)+'☆'.repeat(5-pickedStars);
     const _e=window.escHTML||(s=>s);
