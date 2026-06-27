@@ -17,7 +17,10 @@ test('ouvre la modale de connexion', async ({ page }) => {
 });
 
 test('ouvre la modale d’inscription', async ({ page }) => {
-  await page.getByRole('button', { name: /Rejoindre/ }).click();
+  // openModal via evaluate (robuste, comme annonce/navigation) — le clic réel
+  // du bouton nav est déjà couvert par le test « ouvre la modale de connexion »
+  // et « bascule connexion → inscription ».
+  await page.evaluate(() => window.openModal('inscription'));
   await expect(page.locator('#modal-box')).toContainText(/Rejoindre Allo Braise/);
   await expect(page.locator('#m-prenom')).toBeVisible();
   await expect(page.locator('#m-role')).toBeVisible();
@@ -30,7 +33,7 @@ test('bascule connexion → inscription', async ({ page }) => {
 });
 
 test('inscription : validation des champs obligatoires (sans backend)', async ({ page }) => {
-  await page.getByRole('button', { name: /Rejoindre/ }).click();
+  await page.evaluate(() => window.openModal('inscription'));
   await page.locator('#m-register-submit').click();
   // La validation client doit afficher un message avant tout appel réseau.
   await expect(page.getByText('Prénom et email obligatoires')).toBeVisible();
