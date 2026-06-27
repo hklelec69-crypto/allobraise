@@ -22,6 +22,8 @@ Dates au format AAAA-MM-JJ.
 - **robustesse** : fallbacks `escHTML` (`s=>s`) remplacés par un vrai
   échappement ; abonnements temps réel résiliés à la déconnexion
   (`SIGNED_OUT`) ; id dupliqué `v4-fav-chip` converti en classe.
+- **accessibilité** : `aria-label` ajoutés aux boutons icône-seule (fermer
+  messagerie, retour, envoyer) et au champ de recherche ville.
 
 ### Ajouté
 
