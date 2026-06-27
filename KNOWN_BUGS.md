@@ -22,28 +22,20 @@ chaque correction. Sévérités : 🔴 critique · 🟠 importante · 🟡 mineu
 | B-11 | 🟡   | Lien de partage WhatsApp `target="_blank"` sans `rel="noopener"`                                                          | `rel="noopener"` ajouté                                                                                                     |
 | B-12 | 🟡   | Tabler Icons chargé en `@latest` (risque de rupture amont)                                                                | Épinglé sur `@3.44.0` (= version servie par `@latest` ce jour, zéro changement visuel) — ex-B-OPEN-6                        |
 | B-13 | 🟠   | Annonces non parcourables (RLS lecture = propriétaire) → côté demande inerte                                              | Migration 001 : lecture publique + vue `annonces_public` RGPD (PII protégée) + module V8 (listing + répondre) — ex-B-OPEN-1 |
+| B-14 | 🟠   | Aucune dégradation si le CDN Supabase tombe → tout le Core mourait (`supabase is not defined`)                            | Init **gardée** + stub `{data,error}` + bannière « service indisponible » → l'UI survit (vérifié : `openModal` OK CDN KO)   |
+| B-15 | 🟡   | Pas de debounce sur l'autocomplétion ville (`update` appelé 2×/frappe)                                                    | `update` debouncé (200 ms) + listener `input` redondant retiré — ex-B-OPEN-4                                                |
+| B-16 | 🟡   | `target-size` : liens du footer < 24px (cibles tactiles mobile)                                                           | Padding vertical sur `.footer-col a` (~36px) → audit `target-size` vert, **a11y 95 → 100** — ex-B-OPEN-7                    |
 
 ---
 
-## 🔓 Ouverts (à traiter)
+## 🔓 Ouverts (à traiter — code)
 
-### B-OPEN-4 — 🟡 Pas de debounce sur l'autocomplétion ville
+**Aucun.** Tous les bugs code identifiés par audit sont corrigés.
+Accessibilité Lighthouse = **100**, color-contrast et target-size au vert.
 
-`index.html:~3884` : `cityDrop.update()` à chaque frappe, **doublé** par un
-`oninput` inline (ligne 460). Différé : le double chemin d'appel rend un
-debounce risqué sans test fin de l'UX de recherche. Ajouter un debounce ~250 ms
-en consolidant les deux chemins.
-
-### B-OPEN-7 — 🟡 Accessibilité : taille des cibles tactiles
-
-Lighthouse a11y = **95** (était 77). ✅ `color-contrast` **résolu** (audit au
-vert) : `--muted` assombri `#8C8070`→`#6B6052` (texte secondaire), texte/onglets
-orange sur fond clair → nouvelle variable `--fire-text #B83909`, lien FAQ sur
-fond **foncé** → `--fire3 #FF8C42`. Les boutons gardent le vif `--fire` (fond,
-non touché).
-
-Reste **`target-size`** — cibles tactiles < 44px sur mobile (chips de filtre,
-petits boutons) → ajustements CSS de layout à valider visuellement (différé).
+Restent uniquement des items inhérents à l'architecture **sans build** (JS/CSS
+non minifiés, règles CSS inutilisées) — les corriger imposerait une étape de
+build, contraire à la convention monofichier. Non bloquant.
 
 ---
 

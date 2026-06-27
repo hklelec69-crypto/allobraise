@@ -7,6 +7,15 @@ Dates au format AAAA-MM-JJ.
 
 ### Corrigé
 
+- **Résilience CDN Supabase** : si le SDK (CDN) ne se charge pas, l'app ne meurt
+  plus (`supabase is not defined`). Init **gardée** + stub renvoyant `{data,
+error}` (gestion d'erreur existante) + bannière « service indisponible » →
+  l'UI reste utilisable. Vérifié : `openModal` fonctionne CDN coupé.
+- **Accessibilité 100** : `target-size` corrigé (padding vertical sur les liens
+  du footer ≥ tap target) → Lighthouse a11y **95 → 100**.
+- **Recherche ville** : `cityDrop.update` debouncé (200 ms) + suppression du
+  listener `input` redondant (l'appel était fait 2×/frappe).
+
 - **annonces** : insert sur colonne `email` inexistante (schéma = `user_email`)
   → chaque publication échouait. Corrigé en `user_email` + `user_prenom`.
 - **avis** : erreur DB avalée par un `catch` vide avec succès affiché malgré
