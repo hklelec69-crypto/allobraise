@@ -19,6 +19,9 @@ Dates au format AAAA-MM-JJ.
 - **domaine** : toutes les URL pointaient vers `allobraise.fr` (non possédé,
   NXDOMAIN). Basculées vers `allôbraise.fr` (HTML/partage) et
   `xn--allbraise-i7a.fr` (sitemap/robots).
+- **robustesse** : fallbacks `escHTML` (`s=>s`) remplacés par un vrai
+  échappement ; abonnements temps réel résiliés à la déconnexion
+  (`SIGNED_OUT`) ; id dupliqué `v4-fav-chip` converti en classe.
 
 ### Ajouté
 
@@ -32,6 +35,9 @@ Dates au format AAAA-MM-JJ.
   ce `CHANGELOG.md`.
 - **CI** : le vérificateur de syntaxe inline ignore les `<script>` non-JS
   (JSON-LD).
+- **Outillage qualité** : ESLint, Prettier, Playwright (17 tests E2E), Husky
+  (pre-commit), Lighthouse, workflow CI dédié, scripts npm (`lint`, `format`,
+  `test:e2e`, `check`, `audit`), `TESTING.md`.
 
 ### Sécurité
 

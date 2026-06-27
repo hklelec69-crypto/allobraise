@@ -596,7 +596,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <span class="v4-spec-chip" data-kw="fumoir" onclick="V4.setSpec(this)"><i class="ti ti-flame"></i> Fumoir</span>
           <span class="v4-spec-chip" data-kw="plancha" onclick="V4.setSpec(this)"><i class="ti ti-grill"></i> Plancha</span>
           <span class="v4-spec-chip" data-kw="premium" onclick="V4.setSpec(this)"><i class="ti ti-diamond"></i> Premium</span>
-          <span class="v4-spec-chip" id="v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i> Favoris</span>
+          <span class="v4-spec-chip v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i> Favoris</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)">
           <select onchange="V4.setBudget(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
@@ -1893,7 +1893,7 @@ async function submitPitmaster() {
   const initials = nom.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
   const avColors = ['a1','a2','a3','a4','a5','a6'];
   const av = avColors[pms.length % avColors.length];
-  const _e=window.escHTML||(s=>s);
+  const _e=window.escHTML||(s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'));
   const newCard = `<div class="pcard reveal" style="border-color:var(--fire)">
     <div style="background:var(--fire);color:white;font-size:10px;padding:3px 10px;letter-spacing:2px;text-transform:uppercase;text-align:center">🔥 Nouveau pitmaster</div>
     <div class="pcard-top">
@@ -1954,7 +1954,7 @@ async function submitAnnonce() {
   } catch(e) {}
   // Ajout visuel live
   const dateFormatted = date ? new Date(date).toLocaleDateString('fr', {day:'numeric',month:'long'}) : 'À définir';
-  const _ea=window.escHTML||(s=>s);
+  const _ea=window.escHTML||(s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'));
   const newAnn = `<div class="acard live-new reveal">
     <div class="acard-head">
       <div class="acard-title">${_ea(titre)}</div>
@@ -2271,7 +2271,7 @@ async function submitAnnonce() {
     }
     // Ajout visuel immédiat
     const stars='★'.repeat(pickedStars)+'☆'.repeat(5-pickedStars);
-    const _e=window.escHTML||(s=>s);
+    const _e=window.escHTML||(s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'));
     const item=`<div class="avis-item"><div class="avis-top"><span class="avis-author">${_e(nom)}</span><span class="avis-stars">${stars}</span></div><div class="avis-text">${_e(txt)}</div><div class="avis-date">À l'instant</div></div>`;
     document.getElementById('profil-avis').insertAdjacentHTML('afterbegin', item);
     const form=document.getElementById('v2-avis-form');
@@ -2290,7 +2290,7 @@ async function submitAnnonce() {
         const html=data.map(a=>{
           const stars='★'.repeat(a.note)+'☆'.repeat(5-a.note);
           const d=new Date(a.created_at).toLocaleDateString('fr',{month:'long',year:'numeric'});
-          const _e=window.escHTML||(s=>s);
+          const _e=window.escHTML||(s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'));
           return `<div class="avis-item"><div class="avis-top"><span class="avis-author">${_e(a.auteur)}</span><span class="avis-stars">${stars}</span></div><div class="avis-text">${_e(a.texte)}</div><div class="avis-date">${d}</div></div>`;
         }).join('');
         avisSection.insertAdjacentHTML('afterbegin', html);
@@ -2896,7 +2896,7 @@ async function submitAnnonce() {
     if(!grid||document.getElementById('v4-controls')) return;
     const row=document.createElement('div');
     row.id='v4-controls'; row.className='v4-controls';
-    row.innerHTML=`<div class="v4-spec-row">${SPECS.map((s,i)=>`<span class="v4-spec-chip${i===0?' active':''}" data-kw="${s.kw}" onclick="V4.setSpec(this)"><i class="ti ${s.icon}"></i>${s.label}</span>`).join('')}<span class="v4-spec-chip" id="v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i>Favoris</span></div><div class="v4-sort-wrap"><select onchange="V4.setBudget(this.value)"><option value="">Tous budgets</option><option value="0-100">Jusqu'à 100€</option><option value="100-200">100€ – 200€</option><option value="200-300">200€ – 300€</option><option value="300-">300€ et+</option></select><label>Trier :</label><select onchange="V4.setSort(this.value)"><option value="">Pertinence</option><option value="note">Mieux notés</option><option value="prix-asc">Prix ↑</option><option value="prix-desc">Prix ↓</option></select></div>`;
+    row.innerHTML=`<div class="v4-spec-row">${SPECS.map((s,i)=>`<span class="v4-spec-chip${i===0?' active':''}" data-kw="${s.kw}" onclick="V4.setSpec(this)"><i class="ti ${s.icon}"></i>${s.label}</span>`).join('')}<span class="v4-spec-chip v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i>Favoris</span></div><div class="v4-sort-wrap"><select onchange="V4.setBudget(this.value)"><option value="">Tous budgets</option><option value="0-100">Jusqu'à 100€</option><option value="100-200">100€ – 200€</option><option value="200-300">200€ – 300€</option><option value="300-">300€ et+</option></select><label>Trier :</label><select onchange="V4.setSort(this.value)"><option value="">Pertinence</option><option value="note">Mieux notés</option><option value="prix-asc">Prix ↑</option><option value="prix-desc">Prix ↓</option></select></div>`;
     grid.parentNode.insertBefore(row,grid);
   }
 
@@ -2955,7 +2955,7 @@ async function submitAnnonce() {
   function setSort(v){ window.__v4sort=v||''; if(typeof renderPM==='function') renderPM(); }
   function toggleFav(el){
     window.__v4favOnly=!window.__v4favOnly;
-    document.querySelectorAll('#v4-fav-chip').forEach(c=>c.classList.toggle('active',window.__v4favOnly));
+    document.querySelectorAll('.v4-fav-chip').forEach(c=>c.classList.toggle('active',window.__v4favOnly));
     if(typeof renderPM==='function') renderPM();
   }
   function setBudget(v){ window.__v4budget=v||''; if(typeof renderPM==='function') renderPM(); }

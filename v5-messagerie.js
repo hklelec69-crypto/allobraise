@@ -156,7 +156,14 @@
 
   function init(){
     if(typeof sb!=='undefined'){
-      sb.auth.onAuthStateChange(()=>{setTimeout(()=>{refreshUnreadBadge();subscribeGlobal();},600);});
+      sb.auth.onAuthStateChange((event)=>{
+        if(event==='SIGNED_OUT'){
+          if(globalSub){try{globalSub.unsubscribe();}catch(e){}globalSub=null;}
+          if(localRealtimeSub){try{localRealtimeSub.unsubscribe();}catch(e){}localRealtimeSub=null;}
+          return;
+        }
+        setTimeout(()=>{refreshUnreadBadge();subscribeGlobal();},600);
+      });
       setTimeout(()=>{refreshUnreadBadge();subscribeGlobal();},1500);
       setInterval(refreshUnreadBadge,45000);
     }
