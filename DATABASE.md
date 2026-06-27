@@ -50,25 +50,31 @@ budget, description, created_at`
 
 ## Politiques RLS (résumé exact)
 
-| Table          | INSERT            | SELECT                                  | UPDATE                    |
-| -------------- | ----------------- | --------------------------------------- | ------------------------- |
-| `pitmasters`   | authentifié       | `actif = true` **OU** propriétaire      | propriétaire (`user_id`)  |
-| `reservations` | authentifié       | client **OU** pitmaster (par email/uid) | client **OU** pitmaster   |
-| `messages`     | `from_user = uid` | expéditeur **OU** destinataire          | destinataire (marquer lu) |
-| `avis`         | authentifié       | **public** (`true`)                     | —                         |
-| `annonces`     | authentifié       | **propriétaire uniquement** ⚠️          | —                         |
+| Table          | INSERT            | SELECT                                       | UPDATE                    |
+| -------------- | ----------------- | -------------------------------------------- | ------------------------- |
+| `pitmasters`   | authentifié       | `actif = true` **OU** propriétaire           | propriétaire (`user_id`)  |
+| `reservations` | authentifié       | client **OU** pitmaster (par email/uid)      | client **OU** pitmaster   |
+| `messages`     | `from_user = uid` | expéditeur **OU** destinataire               | destinataire (marquer lu) |
+| `avis`         | authentifié       | **public** (`true`)                          | —                         |
+| `annonces`     | authentifié       | **public** (`true`) — colonnes PII protégées | —                         |
 
 Les politiques utilisent la forme optimisée `(select auth.uid())` (pas de
 ré-évaluation par ligne).
 
-### ⚠️ Limitation connue — visibilité des annonces
+### Annonces parcourables — vue publique RGPD (migration 001)
 
-La politique SELECT d'`annonces` (`annonces_select_own`) ne laisse un
-utilisateur voir **que ses propres** annonces. Un pitmaster ne peut donc pas
-parcourir les demandes des clients. La feature est à moitié construite : le code
-n'effectue d'ailleurs aucun `select` sur `annonces` (affichage purement visuel).
-Rendre les annonces publiquement parcourables = **décision produit + migration
-RLS** (accord utilisateur requis). Voir KNOWN_BUGS.md (B-OPEN-1).
+Les annonces sont **publiquement parcourables** (politique `annonces_public_browse`
+`USING (true)`), MAIS les colonnes **`user_email` / `user_prenom` sont protégées
+au niveau privilèges** : `anon` et `authenticated` n'ont le `SELECT` que sur les
+colonnes non personnelles. Un `select user_email from annonces` est donc **refusé**
+(vérifié via `has_column_privilege`).
+
+- **Vue `public.annonces_public`** (`SECURITY INVOKER`) : `id, user_id, titre,
+ville, date_event, personnes, budget, description, created_at` — c'est la
+  source de lecture côté code (module V8). Aucune donnée personnelle.
+- Le contact se fait via la **messagerie interne** routée par `user_id` (l'email
+  du client n'est jamais exposé).
+- Migration : `migrations/001_annonces_browsable.sql` (+ correctif invoker).
 
 ---
 

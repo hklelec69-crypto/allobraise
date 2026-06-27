@@ -3907,6 +3907,103 @@ async function submitAnnonce() {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
+     MODULE V8 — ANNONCES CLIENTS PARCOURABLES (ADDITIF)
+     Lit les vraies annonces via la vue publique `annonces_public` (SANS email
+     ni prénom — RGPD) et les affiche dans l'onglet Annonces. Le bouton
+     « Répondre » ouvre une conversation routée par `user_id` (l'email du client
+     n'est jamais exposé). Aucune donnée utilisateur n'est injectée dans un
+     handler inline (listeners attachés en JS + échappement systématique).
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  if(window.__abAnnonces) return;
+  window.__abAnnonces=true;
+
+  function esc(s){ return (window.escHTML||(x=>String(x??'')))(s); }
+  function fmtDate(d){
+    if(!d) return 'À définir';
+    try{ return new Date(d).toLocaleDateString('fr',{day:'numeric',month:'long'}); }catch(e){ return 'À définir'; }
+  }
+
+  // Ouvre une conversation avec l'auteur d'une annonce (par user_id).
+  async function repondre(an){
+    const cu = window.currentUser;
+    if(!cu){
+      if(typeof openModal==='function') openModal('inscription');
+      if(typeof toast==='function') toast('Créez un compte pour répondre à une annonce','error','⚠️');
+      return;
+    }
+    if(!an || !an.user_id){ if(typeof toast==='function') toast('Annonce indisponible','error','⚠️'); return; }
+    if(String(an.user_id)===String(cu.id)){ if(typeof toast==='function') toast('C’est votre propre annonce 🙂','error','ℹ️'); return; }
+    const convId = (typeof abConvId==='function')
+      ? abConvId('u:'+cu.id, 'u:'+an.user_id)
+      : ('ann__'+cu.id+'__'+an.user_id).replace(/[^a-zA-Z0-9_@.]/g,'_');
+    try{
+      const { data } = await sb.from('messages').select('id').eq('conversation_id',convId).limit(1);
+      if(!data || !data.length){
+        const { error } = await sb.from('messages').insert({
+          conversation_id:convId,
+          from_user:cu.id,
+          to_user:an.user_id,
+          pitmaster_name:cu.prenom||'Un pitmaster',
+          message:'Bonjour ! Je réponds à votre annonce « '+(an.titre||'votre demande')+' ». Je suis disponible — parlons-en !',
+          lu:false
+        });
+        if(error){ if(typeof toast==='function') toast('Envoi impossible, réessayez','error','⚠️'); return; }
+      }
+      // Ouvre le panneau de messagerie
+      const panel=document.getElementById('msg-panel');
+      if(panel){ panel.classList.add('open'); document.body.style.overflow='hidden'; }
+      if(typeof openConversation==='function') await openConversation(convId, an.user_id, 'Client');
+      if(typeof toast==='function') toast('Réponse envoyée ! 🔥','success','✅');
+    }catch(e){ if(typeof toast==='function') toast('Connexion impossible, réessayez','error','⚠️'); }
+  }
+
+  function card(an){
+    const el=document.createElement('div');
+    el.className='acard reveal';
+    el.innerHTML =
+      '<div class="acard-head"><div class="acard-title">'+esc(an.titre||'Demande BBQ')+'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="acard-badge">Client</span></div></div>'
+      +'<div class="acard-meta">'
+      +'<span><i class="ti ti-map-pin" aria-hidden="true"></i>'+esc(an.ville||'Non précisé')+'</span>'
+      +'<span><i class="ti ti-calendar" aria-hidden="true"></i>'+fmtDate(an.date_event)+'</span>'
+      +'<span><i class="ti ti-users" aria-hidden="true"></i>'+esc(an.personnes!=null?an.personnes:'?')+' pers.</span>'
+      +'</div>'
+      +'<div class="acard-desc">'+esc(an.description||'Événement BBQ')+'</div>'
+      +'<div class="acard-footer">'
+      +'<div style="display:flex;flex-direction:column;gap:3px"><div class="budget">Budget : '+esc(an.budget||'À négocier')+'</div>'
+      +'<div style="font-size:11px;color:#22C55E;font-weight:500">Demande réelle · répondez vite</div></div>'
+      +'<button class="btn-repondre" type="button">Répondre</button>';
+    el.querySelector('.btn-repondre').addEventListener('click', function(){ repondre(an); });
+    return el;
+  }
+
+  async function loadRealAnnonces(){
+    if(typeof sb==='undefined') return;
+    try{
+      const { data, error } = await sb.from('annonces_public')
+        .select('*').order('created_at',{ascending:false}).limit(60);
+      if(error || !data || !data.length) return;
+      const grid=document.getElementById('grid-ann');
+      if(!grid) return;
+      // Prépend les vraies annonces en tête de grille (avant les exemples).
+      for(let i=data.length-1;i>=0;i--){ grid.insertBefore(card(data[i]), grid.firstChild); }
+      const badge=document.getElementById('count-ann');
+      if(badge){ const n=parseInt(badge.textContent)||0; badge.textContent=n+data.length; }
+    }catch(e){ /* silencieux : l'onglet garde les exemples */ }
+  }
+
+  function init(){ setTimeout(loadRealAnnonces, 1200); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  window.V8={ repondre, loadRealAnnonces };
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
      MODULE V7 — ROUTAGE PAR HASH (ADDITIF)
      Persiste la vue courante dans l'URL (#cgu, #profil/<clé>, …) pour qu'un
      rafraîchissement restaure la page au lieu de retomber sur l'accueil.
