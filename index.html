@@ -457,7 +457,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
         <div class="search-row">
           <div class="search-input">
             <i class="ti ti-map-pin" aria-hidden="true"></i>
-            <input type="text" placeholder="Paris, Marseille, Lyon, Bordeaux, Lille..." id="ville-input" oninput="filterVille();window.cityDrop&&cityDrop.update(this.value)" onfocus="window.cityDrop&&cityDrop.update(this.value)" autocomplete="off">
+            <input type="text" placeholder="Paris, Marseille, Lyon, Bordeaux, Lille..." aria-label="Rechercher un expert BBQ par ville" id="ville-input" oninput="filterVille();window.cityDrop&&cityDrop.update(this.value)" onfocus="window.cityDrop&&cityDrop.update(this.value)" autocomplete="off">
           </div>
           <button class="btn-search" onclick="filterVille();window.cityDrop&&cityDrop.hide();document.getElementById('main-section').scrollIntoView({behavior:'smooth'})">Chercher</button>
         </div>
@@ -725,7 +725,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
         <i class="ti ti-message-circle" style="font-size:18px;color:var(--fire)"></i>
         Mes messages
       </div>
-      <button class="msg-close-btn" onclick="toggleMsgPanel()"><i class="ti ti-x"></i></button>
+      <button class="msg-close-btn" aria-label="Fermer la messagerie" onclick="toggleMsgPanel()"><i class="ti ti-x"></i></button>
     </div>
     <div class="msg-panel-body" id="msg-panel-body">
       <div id="msg-content" style="flex:1 1 0;display:flex;flex-direction:column;overflow:hidden;min-height:0"></div>
@@ -1500,14 +1500,14 @@ async function openConversation(convId, otherUser, pitName) {
   const _eo=window.escHTML||(s=>String(s??''));
   el.innerHTML = `<div class="chat-thread" style="display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden;height:100%">
     <div class="chat-thread-header">
-      <button class="btn-back-conv" onclick="renderMsgPanel()"><i class="ti ti-arrow-left"></i></button>
+      <button class="btn-back-conv" aria-label="Retour aux conversations" onclick="renderMsgPanel()"><i class="ti ti-arrow-left"></i></button>
       <div class="conv-avatar a1" style="width:32px;height:32px;font-size:0.9rem">${_eo((pitName||'?')[0])}</div>
       <div style="flex:1"><div style="font-weight:500;font-size:13px">${_eo(pitName)||'Conversation'}</div></div>
     </div>
     <div class="chat-thread-msgs" id="thread-msgs"><div style="text-align:center;color:var(--muted);font-size:13px;padding:1rem">Chargement...</div></div>
     <div class="chat-thread-input">
       <input class="chat-input" id="thread-input" placeholder="Votre message..." onkeydown="if(event.key==='Enter')sendActiveMsg()">
-      <button class="btn-send" onclick="sendActiveMsg()"><i class="ti ti-send"></i></button>
+      <button class="btn-send" aria-label="Envoyer le message" onclick="sendActiveMsg()"><i class="ti ti-send"></i></button>
     </div>
   </div>`;
   await loadThreadMsgs(convId);
@@ -1611,7 +1611,7 @@ function renderChat(name, init, av, dispo, suggs) {
     ).join('')}</div>
     <div class="chat-input-row">
       <input class="chat-input" id="chat-input" type="text" placeholder="Écrivez votre message..." onkeydown="if(event.key==='Enter')sendMsg()">
-      <button class="btn-send" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+      <button class="btn-send" aria-label="Envoyer le message" onclick="sendMsg()"><i class="ti ti-send"></i></button>
     </div>`;
   document.getElementById('chat-wrap').classList.add('open');
   refreshMsgs();
