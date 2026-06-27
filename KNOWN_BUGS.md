@@ -41,22 +41,16 @@ implémenter le listing côté code) — migration DB, accord utilisateur néces
 debounce risqué sans test fin de l'UX de recherche. Ajouter un debounce ~250 ms
 en consolidant les deux chemins.
 
-### B-OPEN-7 — 🟡 Accessibilité : contraste & taille des cibles tactiles
+### B-OPEN-7 — 🟡 Accessibilité : taille des cibles tactiles
 
-Lighthouse a11y = 91. Restent deux familles, toutes deux **décisions de marque /
-design** (à valider visuellement par l'utilisateur) :
+Lighthouse a11y = **95** (était 77). ✅ `color-contrast` **résolu** (audit au
+vert) : `--muted` assombri `#8C8070`→`#6B6052` (texte secondaire), texte/onglets
+orange sur fond clair → nouvelle variable `--fire-text #B83909`, lien FAQ sur
+fond **foncé** → `--fire3 #FF8C42`. Les boutons gardent le vif `--fire` (fond,
+non touché).
 
-- **`color-contrast`** — **réduit de 26 → 3 nœuds**. ✅ `--muted` assombri de
-  `#8C8070` à `#6B6052` (même teinte taupe, ~6:1) → tout le texte secondaire est
-  désormais WCAG AA. Restent **3 nœuds, tous `--fire #D4420A`** (liens/onglets
-  orange : `a[onclick]`, `.tab.active`, `.tab-count`) → **3.85–4.38**. C'est la
-  couleur **identitaire** ; la changer impacte toute la marque → **décision
-  utilisateur requise** (option propre : une nuance orange plus foncée _seulement_
-  pour le texte sur fond clair, en gardant le vif sur les boutons). Tant que ces
-  3 nœuds restent, l'audit `color-contrast` reste « fail » (binaire) malgré
-  l'amélioration réelle.
-- **`target-size`** — cibles tactiles < 44px sur mobile (chips de filtre,
-  petits boutons) → ajustements CSS de layout à valider visuellement.
+Reste **`target-size`** — cibles tactiles < 44px sur mobile (chips de filtre,
+petits boutons) → ajustements CSS de layout à valider visuellement (différé).
 
 ---
 

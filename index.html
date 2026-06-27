@@ -40,7 +40,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--fire:#D4420A;--fire2:#F05A1A;--fire3:#FF8C42;--bg:#FAFAF7;--bg2:#F2F0EA;--dark:#1C1810;--muted:#6B6052;--border:#E0D8CC;--card:#FFFFFF}
+:root{--fire:#D4420A;--fire2:#F05A1A;--fire3:#FF8C42;--fire-text:#B83909;--bg:#FAFAF7;--bg2:#F2F0EA;--dark:#1C1810;--muted:#6B6052;--border:#E0D8CC;--card:#FFFFFF}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);font-size:15px;overflow-x:hidden}
 button{cursor:pointer;font-family:inherit}
 a{text-decoration:none;color:inherit}
@@ -163,7 +163,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .main{max-width:1000px;margin:0 auto;padding:3rem 2rem}
 .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:2rem}
 .tab{padding:0.8rem 1.5rem;font-size:14px;font-weight:500;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s}
-.tab.active{color:var(--fire);border-bottom-color:var(--fire)}
+.tab.active{color:var(--fire-text);border-bottom-color:var(--fire)}
 .tab-count{background:var(--bg2);border-radius:20px;padding:1px 7px;font-size:11px}
 .post-cta{background:linear-gradient(135deg,#1C1810,#2A1F14);border:1px solid rgba(212,66,10,0.25);border-radius:12px;padding:1.5rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .post-cta-text h3{font-size:15px;font-weight:500;margin-bottom:3px;color:white}
@@ -522,7 +522,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <p>L'expert se déplace avec son matériel, gère tout de A à Z. Vous n'avez plus qu'à savourer avec vos invités. Simple comme un coup de fil.</p>
         </div>
       </div>
-      <p style="text-align:center;margin-top:1.5rem"><a href="#" onclick="showLegal('faq')" style="color:var(--fire);font-weight:500;text-decoration:none">Voir toutes les questions fréquentes →</a></p>
+      <p style="text-align:center;margin-top:1.5rem"><a href="#" onclick="showLegal('faq')" style="color:var(--fire3);font-weight:500;text-decoration:none">Voir toutes les questions fréquentes →</a></p>
     </div>
   </div>
 
