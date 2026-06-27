@@ -2402,7 +2402,7 @@ async function submitAnnonce() {
     row.id='v2-share-row';
     row.className='v2-share-row';
     row.innerHTML=`
-      <a class="v2-share-btn v2-share-wa" href="https://wa.me/?text=${txt}" target="_blank"><i class="ti ti-brand-whatsapp"></i> Partager</a>
+      <a class="v2-share-btn v2-share-wa" href="https://wa.me/?text=${txt}" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Partager</a>
       <button class="v2-share-btn" onclick="V2.copyLink()"><i class="ti ti-link"></i> Copier le lien</button>`;
     sticky.appendChild(row);
   }
@@ -3495,7 +3495,11 @@ async function submitAnnonce() {
     if(!session){ input.value=''; URL.revokeObjectURL(localUrl); await _requireFreshAuth(); return; }
     if(typeof toast==='function') toast('Upload en cours...','success','⏳');
     const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
-    const path=_pm.id+'/avatar.'+ext;
+    // Chemin UNIQUE par upload : une URL jamais servie ne peut pas renvoyer un
+    // objet en cache (le CDN Supabase Storage cache par chemin et ignore la
+    // query-string `?v=`, d'où la persistance des anciennes photos avec un
+    // chemin stable). Le timestamp dans le nom garantit une image fraîche partout.
+    const path=_pm.id+'/avatar-'+Date.now()+'.'+ext;
     try{
       // Upload direct via fetch avec le jeton fraîchement vérifié : le client storage-js
       // peut conserver un Authorization header périmé après un refresh de session.
@@ -3899,6 +3903,89 @@ async function submitAnnonce() {
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',attach);
   else attach();
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODULE V7 — ROUTAGE PAR HASH (ADDITIF)
+     Persiste la vue courante dans l'URL (#cgu, #profil/<clé>, …) pour qu'un
+     rafraîchissement restaure la page au lieu de retomber sur l'accueil.
+     N'utilise QUE le hash → aucune config serveur requise (statique Cloudflare).
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  if(window.__abRouter) return;
+  window.__abRouter=true;
+
+  var SIMPLE=['cgu','confidentialite','mentions','faq'];
+  var lastSet=null; // dernier hash posé par nous-mêmes (pour ignorer notre propre hashchange)
+
+  function slug(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+  function pitKey(p){ return p ? (p._id ? 'id:'+p._id : 'n:'+slug(p.name)) : ''; }
+  function findIdxByKey(key){
+    if(typeof pitmasters==='undefined' || !Array.isArray(pitmasters)) return -1;
+    for(var i=0;i<pitmasters.length;i++){ if(pitKey(pitmasters[i])===key) return i; }
+    return -1;
+  }
+  function parseHash(){ return (location.hash||'').replace(/^#/,''); }
+
+  function setHash(h){
+    var target = h ? ('#'+h) : '';
+    if((location.hash||'') === target) return;
+    if(target===''){
+      try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){ location.hash=''; }
+    } else {
+      location.hash = h;
+    }
+    lastSet = location.hash;
+  }
+
+  // 1) Refléter la navigation dans l'URL en patchant les fonctions globales.
+  if(typeof window.showPage==='function' && !window.showPage._abrouter){
+    var origPage=window.showPage;
+    window.showPage=function(page){
+      origPage.apply(this, arguments);
+      if(page && page!=='profil'){ setHash(page==='home' ? '' : page); }
+    };
+    window.showPage._abrouter=true;
+  }
+  if(typeof window.showProfil==='function' && !window.showProfil._abrouter){
+    var origProfil=window.showProfil;
+    window.showProfil=function(idx){
+      origProfil.apply(this, arguments);
+      try{
+        var p=(typeof pitmasters!=='undefined')?pitmasters[idx]:null;
+        if(p) setHash('profil/'+encodeURIComponent(pitKey(p)));
+      }catch(e){}
+    };
+    window.showProfil._abrouter=true;
+  }
+
+  // 2) Restaurer la vue depuis l'URL (au chargement et à chaque hashchange).
+  function restore(attempt){
+    var h=parseHash();
+    if(!h) return; // accueil = état par défaut, rien à faire
+    if(h.indexOf('profil/')===0){
+      if(typeof window.showProfil!=='function') return;
+      var key=decodeURIComponent(h.slice(7));
+      var idx=findIdxByKey(key);
+      if(idx>=0){ window.showProfil(idx); return; }
+      // pitmasters réels chargés en asynchrone → on réessaie quelques fois
+      if((attempt||0) < 15){ setTimeout(function(){ restore((attempt||0)+1); }, 400); }
+      return;
+    }
+    if(SIMPLE.indexOf(h)>=0 && typeof window.showPage==='function'){ window.showPage(h); }
+  }
+
+  window.addEventListener('hashchange', function(){
+    if(location.hash === lastSet){ return; } // hashchange déclenché par nous → ignorer
+    restore(0);
+  });
+
+  function boot(){ setTimeout(function(){ restore(0); }, 50); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
 </body>

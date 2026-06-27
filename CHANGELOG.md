@@ -24,6 +24,16 @@ Dates au format AAAA-MM-JJ.
   (`SIGNED_OUT`) ; id dupliqué `v4-fav-chip` converti en classe.
 - **accessibilité** : `aria-label` ajoutés aux boutons icône-seule (fermer
   messagerie, retour, envoyer) et au champ de recherche ville.
+- **images en cache** (🔴) : la photo de profil était écrite sur un chemin
+  stable (`avatar.<ext>`) avec un cache-bust `?v=` que le CDN Supabase Storage
+  ignore (cache par chemin) → anciennes photos persistantes. Corrigé par un
+  **chemin unique par upload** (`avatar-<timestamp>.<ext>`).
+- **refresh → accueil** (🔴) : aucune persistance d'URL (pas de hash/history) ;
+  toute actualisation retombait sur l'accueil. Ajout d'un **module de routage
+  par hash** (V7, additif) : `#cgu`, `#confidentialite`, `#mentions`, `#faq`,
+  `#profil/<clé>`. La vue est restaurée au chargement (profils réels chargés en
+  asynchrone gérés par retry). 4 tests E2E de persistance ajoutés.
+- **partage** : `rel="noopener"` ajouté au lien WhatsApp `target="_blank"`.
 
 ### Ajouté
 
