@@ -46,15 +46,15 @@ en consolidant les deux chemins.
 Lighthouse a11y = 91. Restent deux familles, toutes deux **décisions de marque /
 design** (à valider visuellement par l'utilisateur) :
 
-- **`color-contrast`** — 26 nœuds, dus à **deux couleurs de charte** sous le
-  seuil WCAG AA (4.5:1 pour texte normal) :
-  - `--muted #8C8070` (texte secondaire : `.stag`, `.btn-ghost`, libellés) →
-    **3.39–3.86**. Fix possible : assombrir vers ~`#6B6052` (même teinte taupe,
-    passe à ~6:1). **Mais** ne suffit pas à faire passer l'audit à lui seul.
-  - `--fire #D4420A` (liens/onglets orange : `a[onclick]`, `.tab.active`,
-    `.tab-count`) → **3.85–4.38**. C'est la couleur **identitaire** ; la changer
-    impacte toute la marque → décision utilisateur requise (ou utiliser une
-    nuance orange plus foncée _uniquement_ pour le texte sur fond clair).
+- **`color-contrast`** — **réduit de 26 → 3 nœuds**. ✅ `--muted` assombri de
+  `#8C8070` à `#6B6052` (même teinte taupe, ~6:1) → tout le texte secondaire est
+  désormais WCAG AA. Restent **3 nœuds, tous `--fire #D4420A`** (liens/onglets
+  orange : `a[onclick]`, `.tab.active`, `.tab-count`) → **3.85–4.38**. C'est la
+  couleur **identitaire** ; la changer impacte toute la marque → **décision
+  utilisateur requise** (option propre : une nuance orange plus foncée _seulement_
+  pour le texte sur fond clair, en gardant le vif sur les boutons). Tant que ces
+  3 nœuds restent, l'audit `color-contrast` reste « fail » (binaire) malgré
+  l'amélioration réelle.
 - **`target-size`** — cibles tactiles < 44px sur mobile (chips de filtre,
   petits boutons) → ajustements CSS de layout à valider visuellement.
 
