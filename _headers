@@ -7,3 +7,13 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin-allow-popups
   Cross-Origin-Resource-Policy: cross-origin
+
+# Le HTML ne doit JAMAIS être servi depuis un cache navigateur périmé : sinon
+# les correctifs déployés ne sont pas pris en compte tant que le cache n'expire
+# pas. `no-cache` force une revalidation à chaque chargement (304 si inchangé).
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/404.html
+  Cache-Control: no-cache

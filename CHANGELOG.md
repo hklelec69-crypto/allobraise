@@ -7,6 +7,10 @@ Dates au format AAAA-MM-JJ.
 
 ### Corrigé
 
+- **Cache HTML** : `_headers` ne définissait aucun `Cache-Control` → un ancien
+  `index.html` pouvait rester en cache navigateur, masquant les correctifs
+  déployés (photo, routage…). Ajout de `Cache-Control: no-cache` sur `/`,
+  `/index.html`, `/404.html` → revalidation à chaque chargement.
 - **Résilience CDN Supabase** : si le SDK (CDN) ne se charge pas, l'app ne meurt
   plus (`supabase is not defined`). Init **gardée** + stub renvoyant `{data,
 error}` (gestion d'erreur existante) + bannière « service indisponible » →
