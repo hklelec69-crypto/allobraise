@@ -33,4 +33,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=allobraise
+          # --branch=main FORCE le déploiement PRODUCTION : en CI le checkout est
+          # en detached HEAD, wrangler ne détecte pas la branche et publiait en
+          # PREVIEW (URL à hash) → la prod allobraise.pages.dev restait figée.
+          command: pages deploy . --project-name=allobraise --branch=main --commit-dirty=true
