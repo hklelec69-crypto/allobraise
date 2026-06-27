@@ -49,6 +49,14 @@ Dates au format AAAA-MM-JJ.
 
 ### Ajouté
 
+- **Annonces clients parcourables** (côté demande de la marketplace) :
+  - Migration DB 001 — lecture publique des annonces + **vue `annonces_public`
+    RGPD** (`SECURITY INVOKER`, sans `user_email`/`user_prenom`) ; colonnes PII
+    protégées au niveau privilèges (vérifié). Aucune fuite d'email.
+  - Module **V8** (additif) — affiche les vraies annonces dans l'onglet, bouton
+    **Répondre** qui ouvre une conversation routée par `user_id` (email jamais
+    exposé). Contenu utilisateur échappé, listeners attachés en JS (pas d'inline).
+
 - **SEO** : JSON-LD `LocalBusiness` statique dans le `<head>`, `robots.txt`,
   `sitemap.xml`, `preconnect` vers fonts/jsDelivr/Supabase.
 - **Branding** : OG image de marque 1200×630 (`og-image.png`) générée via
