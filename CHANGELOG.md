@@ -41,6 +41,9 @@ Dates au format AAAA-MM-JJ.
   rôle d'inscription). Score Lighthouse a11y 84 → 91.
 - **stabilité** : Tabler Icons épinglé sur `@3.44.0` (au lieu de `@latest`) —
   supprime le risque de rupture amont, version identique à celle servie ce jour.
+- **accessibilité (contraste)** : `--muted` assombri `#8C8070` → `#6B6052`
+  (même teinte, ~6:1 WCAG AA). Nœuds en échec de contraste **26 → 3** ; les 3
+  restants relèvent de la couleur de marque `--fire` (décision utilisateur).
 
 ### Ajouté
 
