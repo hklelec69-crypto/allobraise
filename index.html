@@ -599,7 +599,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <span class="v4-spec-chip v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i> Favoris</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)">
-          <select onchange="V4.setBudget(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
+          <select aria-label="Filtrer par budget" onchange="V4.setBudget(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
             <option value="">Tous budgets</option>
             <option value="0-100">Jusqu'à 100€</option>
             <option value="100-200">100€ – 200€</option>
@@ -607,7 +607,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
             <option value="300-">300€ et+</option>
           </select>
           <label>Trier :</label>
-          <select onchange="V4.setSort(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
+          <select aria-label="Trier les résultats" onchange="V4.setSort(this.value)" style="background:var(--card);border:1px solid var(--border);color:var(--dark);padding:6px 10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
             <option value="">Pertinence</option>
             <option value="note">Mieux notés</option>
             <option value="prix-asc">Prix croissant</option>
@@ -1753,7 +1753,7 @@ function openModal(type) {
       <div class="fg"><label>Email</label><input type="email" id="m-email" placeholder="votre@email.com"></div>
       <div class="fg"><label>Mot de passe</label><input type="password" id="m-pw" placeholder="minimum 6 caractères"></div>
       <div class="fg"><label>Ville</label><input type="text" id="m-ville" placeholder="Lyon, Vienne..."></div>
-      <div class="fg"><label>Je suis...</label><select id="m-role"><option value="client">Un particulier qui cherche un expert BBQ</option><option value="pitmaster">Un expert BBQ qui propose ses services</option></select></div>
+      <div class="fg"><label>Je suis...</label><select id="m-role" aria-label="Je suis"><option value="client">Un particulier qui cherche un expert BBQ</option><option value="pitmaster">Un expert BBQ qui propose ses services</option></select></div>
       <button class="btn-submit" id="m-register-submit" onclick="submitInscription()">Créer mon compte gratuitement</button>
       <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:1rem">Déjà un compte ? <a href="#" style="color:var(--fire)" onclick="openModal('connexion')">Se connecter</a></p>
     </div>`;
@@ -2896,7 +2896,7 @@ async function submitAnnonce() {
     if(!grid||document.getElementById('v4-controls')) return;
     const row=document.createElement('div');
     row.id='v4-controls'; row.className='v4-controls';
-    row.innerHTML=`<div class="v4-spec-row">${SPECS.map((s,i)=>`<span class="v4-spec-chip${i===0?' active':''}" data-kw="${s.kw}" onclick="V4.setSpec(this)"><i class="ti ${s.icon}"></i>${s.label}</span>`).join('')}<span class="v4-spec-chip v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i>Favoris</span></div><div class="v4-sort-wrap"><select onchange="V4.setBudget(this.value)"><option value="">Tous budgets</option><option value="0-100">Jusqu'à 100€</option><option value="100-200">100€ – 200€</option><option value="200-300">200€ – 300€</option><option value="300-">300€ et+</option></select><label>Trier :</label><select onchange="V4.setSort(this.value)"><option value="">Pertinence</option><option value="note">Mieux notés</option><option value="prix-asc">Prix ↑</option><option value="prix-desc">Prix ↓</option></select></div>`;
+    row.innerHTML=`<div class="v4-spec-row">${SPECS.map((s,i)=>`<span class="v4-spec-chip${i===0?' active':''}" data-kw="${s.kw}" onclick="V4.setSpec(this)"><i class="ti ${s.icon}"></i>${s.label}</span>`).join('')}<span class="v4-spec-chip v4-fav-chip" onclick="V4.toggleFav(this)"><i class="ti ti-heart"></i>Favoris</span></div><div class="v4-sort-wrap"><select aria-label="Filtrer par budget" onchange="V4.setBudget(this.value)"><option value="">Tous budgets</option><option value="0-100">Jusqu'à 100€</option><option value="100-200">100€ – 200€</option><option value="200-300">200€ – 300€</option><option value="300-">300€ et+</option></select><label>Trier :</label><select aria-label="Trier les résultats" onchange="V4.setSort(this.value)"><option value="">Pertinence</option><option value="note">Mieux notés</option><option value="prix-asc">Prix ↑</option><option value="prix-desc">Prix ↓</option></select></div>`;
     grid.parentNode.insertBefore(row,grid);
   }
 
@@ -3921,6 +3921,11 @@ async function submitAnnonce() {
   var SIMPLE=['cgu','confidentialite','mentions','faq'];
   var lastSet=null; // dernier hash posé par nous-mêmes (pour ignorer notre propre hashchange)
 
+  // Titre de page dynamique par vue (onglets, favoris, partages, SEO).
+  var BASE_TITLE=document.title;
+  var TITLES={cgu:"Conditions Générales d'Utilisation",confidentialite:"Politique de confidentialité",mentions:"Mentions légales",faq:"Questions fréquentes"};
+  function setTitle(label){ try{ document.title = label ? (label+' · Allo Braise') : BASE_TITLE; }catch(e){} }
+
   function slug(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
   function pitKey(p){ return p ? (p._id ? 'id:'+p._id : 'n:'+slug(p.name)) : ''; }
   function findIdxByKey(key){
@@ -3946,7 +3951,10 @@ async function submitAnnonce() {
     var origPage=window.showPage;
     window.showPage=function(page){
       origPage.apply(this, arguments);
-      if(page && page!=='profil'){ setHash(page==='home' ? '' : page); }
+      if(page && page!=='profil'){
+        setHash(page==='home' ? '' : page);
+        setTitle(page==='home' ? '' : (TITLES[page]||''));
+      }
     };
     window.showPage._abrouter=true;
   }
@@ -3956,7 +3964,7 @@ async function submitAnnonce() {
       origProfil.apply(this, arguments);
       try{
         var p=(typeof pitmasters!=='undefined')?pitmasters[idx]:null;
-        if(p) setHash('profil/'+encodeURIComponent(pitKey(p)));
+        if(p){ setHash('profil/'+encodeURIComponent(pitKey(p))); setTitle(p.name+' — Expert BBQ'); }
       }catch(e){}
     };
     window.showProfil._abrouter=true;
