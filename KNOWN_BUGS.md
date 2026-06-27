@@ -45,6 +45,13 @@ en consolidant les deux chemins.
 CDN non épinglé → risque de rupture si une version amont casse. Épingler une
 version (à faire quand on peut vérifier le rendu).
 
+### B-OPEN-7 — 🟡 Accessibilité : contraste & taille des cibles tactiles
+
+Lighthouse a11y = 91. Restent `color-contrast` (texte `--muted` sur fonds
+clairs sous le seuil WCAG AA) et `target-size` (cibles tactiles < 44px sur
+mobile). Différés : touchent la **charte de couleurs** et le **CSS de layout**
+→ décisions de design à valider visuellement (non vérifiable depuis le sandbox).
+
 ---
 
 ## 🌐 Hors-code (action utilisateur / infra)

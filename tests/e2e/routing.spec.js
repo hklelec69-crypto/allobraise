@@ -11,9 +11,11 @@ test.beforeEach(async ({ page }) => {
 test('page légale : reflétée dans l’URL et restaurée au refresh', async ({ page }) => {
   await page.evaluate(() => window.showLegal('cgu'));
   await expect(page).toHaveURL(/#cgu$/);
+  await expect(page).toHaveTitle(/Conditions Générales/);
   await page.reload();
   await expect(page.locator('#page-cgu')).toBeVisible();
   await expect(page.locator('#page-home')).toBeHidden();
+  await expect(page).toHaveTitle(/Conditions Générales/);
 });
 
 test('confidentialité : restaurée au refresh', async ({ page }) => {
@@ -32,9 +34,12 @@ test('profil pitmaster : URL + restauration au refresh', async ({ page }) => {
   await expect(page).toHaveURL(/#profil\//);
   const name = await page.locator('#profil-name').textContent();
 
+  await expect(page).toHaveTitle(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+
   await page.reload();
   await expect(page.locator('#page-profil')).toBeVisible();
   await expect(page.locator('#profil-name')).toHaveText(name);
+  await expect(page).toHaveTitle(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 test('retour à l’accueil : le hash est nettoyé', async ({ page }) => {

@@ -34,6 +34,11 @@ Dates au format AAAA-MM-JJ.
   `#profil/<clé>`. La vue est restaurée au chargement (profils réels chargés en
   asynchrone gérés par retry). 4 tests E2E de persistance ajoutés.
 - **partage** : `rel="noopener"` ajouté au lien WhatsApp `target="_blank"`.
+- **SEO/UX** : titre de page dynamique par vue (`<title>` mis à jour pour les
+  pages légales et les profils via le routeur V7) — meilleurs onglets, favoris,
+  partages.
+- **accessibilité** : `aria-label` sur les `<select>` (filtres budget/tri,
+  rôle d'inscription). Score Lighthouse a11y 84 → 91.
 
 ### Ajouté
 
