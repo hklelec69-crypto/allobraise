@@ -39,6 +39,8 @@ Dates au format AAAA-MM-JJ.
   partages.
 - **accessibilité** : `aria-label` sur les `<select>` (filtres budget/tri,
   rôle d'inscription). Score Lighthouse a11y 84 → 91.
+- **stabilité** : Tabler Icons épinglé sur `@3.44.0` (au lieu de `@latest`) —
+  supprime le risque de rupture amont, version identique à celle servie ce jour.
 
 ### Ajouté
 
