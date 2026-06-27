@@ -47,10 +47,20 @@ version (à faire quand on peut vérifier le rendu).
 
 ### B-OPEN-7 — 🟡 Accessibilité : contraste & taille des cibles tactiles
 
-Lighthouse a11y = 91. Restent `color-contrast` (texte `--muted` sur fonds
-clairs sous le seuil WCAG AA) et `target-size` (cibles tactiles < 44px sur
-mobile). Différés : touchent la **charte de couleurs** et le **CSS de layout**
-→ décisions de design à valider visuellement (non vérifiable depuis le sandbox).
+Lighthouse a11y = 91. Restent deux familles, toutes deux **décisions de marque /
+design** (à valider visuellement par l'utilisateur) :
+
+- **`color-contrast`** — 26 nœuds, dus à **deux couleurs de charte** sous le
+  seuil WCAG AA (4.5:1 pour texte normal) :
+  - `--muted #8C8070` (texte secondaire : `.stag`, `.btn-ghost`, libellés) →
+    **3.39–3.86**. Fix possible : assombrir vers ~`#6B6052` (même teinte taupe,
+    passe à ~6:1). **Mais** ne suffit pas à faire passer l'audit à lui seul.
+  - `--fire #D4420A` (liens/onglets orange : `a[onclick]`, `.tab.active`,
+    `.tab-count`) → **3.85–4.38**. C'est la couleur **identitaire** ; la changer
+    impacte toute la marque → décision utilisateur requise (ou utiliser une
+    nuance orange plus foncée _uniquement_ pour le texte sur fond clair).
+- **`target-size`** — cibles tactiles < 44px sur mobile (chips de filtre,
+  petits boutons) → ajustements CSS de layout à valider visuellement.
 
 ---
 
