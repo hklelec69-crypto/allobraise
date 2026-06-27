@@ -24,7 +24,10 @@ test('confidentialité : restaurée au refresh', async ({ page }) => {
 });
 
 test('profil pitmaster : URL + restauration au refresh', async ({ page }) => {
-  await page.locator('.pcard').first().click();
+  // On cible un profil DÉMO connu par son texte (toujours présent, sans backend)
+  // pour rester déterministe : en prod/CI, un vrai pitmaster pourrait être la
+  // 1re carte et dépendrait du timing de chargement Supabase.
+  await page.locator('.pcard', { hasText: 'Le Gros Fumeur' }).first().click();
   await expect(page.locator('#page-profil')).toBeVisible();
   await expect(page).toHaveURL(/#profil\//);
   const name = await page.locator('#profil-name').textContent();
