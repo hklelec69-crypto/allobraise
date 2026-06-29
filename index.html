@@ -3334,7 +3334,7 @@ async function submitAnnonce() {
       return;
     }
     _renderHero();
-    if(_pm?.id) sb.from('pitmasters').update({last_seen:new Date().toISOString()}).eq('id',_pm.id).catch(()=>{});
+    if(_pm?.id) sb.from('pitmasters').update({last_seen:new Date().toISOString()}).eq('id',_pm.id).then(undefined,()=>{});
     tab('profil', document.querySelector('.pm-tab'));
     _loadStats();
   }
