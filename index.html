@@ -4120,6 +4120,16 @@ async function submitAnnonce() {
       if((attempt||0) < 15){ setTimeout(function(){ restore((attempt||0)+1); }, 400); }
       return;
     }
+    if(h==='pitmaster-dashboard'){
+      // Le dashboard exige une session : au refresh, sb.auth.getSession() la
+      // restaure en asynchrone (currentUser arrive après le boot). On attend que
+      // l'auth ET le module PMDash soient prêts, puis on rouvre le dashboard.
+      if(window.currentUser && window.PMDash && typeof window.PMDash.open==='function'){
+        window.PMDash.open(); return;
+      }
+      if((attempt||0) < 25){ setTimeout(function(){ restore((attempt||0)+1); }, 400); }
+      return;
+    }
     if(SIMPLE.indexOf(h)>=0 && typeof window.showPage==='function'){ window.showPage(h); }
   }
 
