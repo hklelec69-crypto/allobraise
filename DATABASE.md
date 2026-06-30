@@ -50,16 +50,37 @@ budget, description, created_at`
 
 ## Politiques RLS (résumé exact)
 
-| Table          | INSERT            | SELECT                                       | UPDATE                    |
-| -------------- | ----------------- | -------------------------------------------- | ------------------------- |
-| `pitmasters`   | authentifié       | `actif = true` **OU** propriétaire           | propriétaire (`user_id`)  |
-| `reservations` | authentifié       | client **OU** pitmaster (par email/uid)      | client **OU** pitmaster   |
-| `messages`     | `from_user = uid` | expéditeur **OU** destinataire               | destinataire (marquer lu) |
-| `avis`         | authentifié       | **public** (`true`)                          | —                         |
-| `annonces`     | authentifié       | **public** (`true`) — colonnes PII protégées | —                         |
+| Table          | INSERT (with check) | SELECT                                                       | UPDATE                    |
+| -------------- | ------------------- | ------------------------------------------------------------ | ------------------------- |
+| `pitmasters`   | `user_id = uid`     | `actif = true` **OU** propriétaire — `email` masqué à `anon` | propriétaire (`user_id`)  |
+| `reservations` | `client_id = uid`   | client **OU** pitmaster (par email/uid)                      | client **OU** pitmaster   |
+| `messages`     | `from_user = uid`   | expéditeur **OU** destinataire                               | destinataire (marquer lu) |
+| `avis`         | `client_id = uid`   | **public** (`true`)                                          | —                         |
+| `annonces`     | `user_id = uid`     | **public** (`true`) — colonnes PII protégées                 | —                         |
 
 Les politiques utilisent la forme optimisée `(select auth.uid())` (pas de
 ré-évaluation par ligne).
+
+### Durcissement anti-fraude (INSERT liés à l'utilisateur)
+
+Chaque `INSERT` est **lié à l'utilisateur authentifié** : la ligne doit porter
+son propre identifiant (`client_id`/`user_id = auth.uid()`). Avant, les policies
+ne vérifiaient que `auth.uid() IS NOT NULL`, ce qui permettait à tout compte
+connecté de **forger** de faux avis, réservations, annonces ou profils au nom
+d'autrui. Vérifié : insert légitime accepté, insert au nom d'un tiers refusé
+(`42501`). Reste ouvert (roadmap) : les avis ne sont pas encore **gated** sur une
+transaction réelle (`pitmaster_nom` est du texte libre).
+
+### `pitmasters.email` — masqué aux visiteurs anonymes (RGPD / anti-scraping)
+
+La grille publique exposait l'email de chaque pitmaster actif à tout visiteur.
+Le privilège `SELECT` sur la colonne `email` est désormais **révoqué pour `anon`**
+(revoke table + grant colonne par colonne sauf `email`, comme pour `annonces`).
+`authenticated` le conserve (flux de réservation). Côté code, la grille charge
+des **colonnes explicites sans `email`** ; l'email réel est récupéré à la demande
+via `window.resolvePitEmail()` lors d'une action connectée. Masquage total
+(même pour `authenticated`) = nécessiterait un **relais email côté serveur** —
+voir roadmap.
 
 ### Annonces parcourables — vue publique RGPD (migration 001)
 
