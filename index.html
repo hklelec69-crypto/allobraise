@@ -202,6 +202,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .a11{background:#FEE8E8;color:#A01010}.a12{background:#E8F0FE;color:#1040A0}
 .pcard-info{flex:1;min-width:0}
 .pcard-name{font-weight:500;font-size:15px}
+.pcard-new{font-size:12px;color:var(--fire-text,#B83909);font-weight:600;display:inline-flex;align-items:center;gap:4px}
 .pcard-loc{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:2px}
 .dispo-dot{width:6px;height:6px;border-radius:50%;background:#22C55E;flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
 .pcard-body{padding:0.8rem 1.2rem}
@@ -1180,7 +1181,7 @@ function renderPM(){
   </div>
   <div class="pcard-body">
     <div class="pcard-spec">${p.spec}</div>
-    <div class="pcard-rating"><span class="stars">${p.stars}</span><span class="rcount">${p.rating} · ${p.rev} avis</span></div>
+    <div class="pcard-rating">${(p._nouveau||(p._real&&!p.rev))?'<span class="pcard-new"><i class="ti ti-sparkles" aria-hidden="true"></i> Nouveau · pas encore d\'avis</span>':'<span class="stars">'+p.stars+'</span><span class="rcount"><strong>'+p.rating+'</strong> · '+p.rev+' avis</span>'}</div>
     <div class="pcard-footer">
       <div class="pcard-price">à partir de ${p.prix}€ <small>/ event</small></div>
       <button class="btn-contact" onclick="event.stopPropagation();startConversation(${idx})">Contacter</button>
@@ -1328,7 +1329,7 @@ function showProfil(idx){
   document.getElementById('profil-name').textContent=p.name;
   document.getElementById('profil-spec').textContent=p.spec;
   document.getElementById('profil-loc').innerHTML=`<i class="ti ti-map-pin"></i> ${p.ville}`;
-  document.getElementById('profil-rating').innerHTML=`<i class="ti ti-star"></i> ${p.rating} (${p.rev} avis)`;
+  document.getElementById('profil-rating').innerHTML=(p._nouveau||(p._real&&!p.rev))?`<i class="ti ti-sparkles"></i> Nouveau`:`<i class="ti ti-star"></i> ${p.rating} (${p.rev} avis)`;
   document.getElementById('profil-dispo').innerHTML=p.dispo?'<span style="color:#22C55E;display:flex;align-items:center;gap:5px"><div style="width:6px;height:6px;border-radius:50%;background:#22C55E;animation:pulse-dot 2s infinite"></div>Disponible</span>':'<span style="color:var(--muted)">Indisponible</span>';
   document.getElementById('profil-price').textContent=p.prix+'€';
   document.getElementById('profil-desc').textContent=p.desc;
@@ -2147,7 +2148,7 @@ async function submitAnnonce() {
           av:avColors[(pitmasters.length+i)%avColors.length],
           name:_e(row.nom), ville:_e(row.ville||'France'),
           spec:_e(row.specialite||'BBQ à domicile'),
-          stars:'★★★★★', rating:5.0, rev:0, prix:prixNum, dispo:true,
+          stars:'', rating:0, rev:0, _nouveau:true, prix:prixNum, dispo:true,
           desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
           tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
           avis:[], _real:true, _email:null, _id:row.id, photo_url:row.photo_url||null
@@ -2155,6 +2156,7 @@ async function submitAnnonce() {
       });
       if(typeof renderPM === 'function') renderPM();
       setTimeout(refreshVerifBadges, 100);
+      if(window.abApplyRealRatings) window.abApplyRealRatings();
     }catch(e){ /* silencieux */ }
   }
 
@@ -2174,6 +2176,35 @@ async function submitAnnonce() {
       }
     });
   }
+  window.__refreshVerif = refreshVerifBadges;
+
+  // Note réelle agrégée depuis la table `avis` (honnête : tant qu'un vrai
+  // pitmaster n'a aucun avis, sa carte affiche « Nouveau » plutôt qu'une note
+  // fictive). Recalcule moyenne + nombre, puis ré-affiche et ré-applique les
+  // badges. Exposé en global : appelé par les deux loaders de grille.
+  window.abApplyRealRatings = async function(){
+    if(typeof sb==='undefined' || typeof pitmasters==='undefined') return;
+    const reals = pitmasters.filter(p=>p && p._real && p.name);
+    if(!reals.length) return;
+    const names = [...new Set(reals.map(p=>p.name))];
+    let rows=null;
+    try{ const { data } = await sb.from('avis').select('pitmaster_nom,note').in('pitmaster_nom', names); rows=data; }
+    catch(e){ return; }
+    if(!rows || !rows.length) return;
+    const agg={};
+    rows.forEach(a=>{ const k=a.pitmaster_nom; const v=parseInt(a.note)||0; if(v>0){ (agg[k]=agg[k]||{s:0,n:0}); agg[k].s+=v; agg[k].n++; } });
+    let changed=false;
+    reals.forEach(p=>{
+      const g=agg[p.name];
+      if(g && g.n>0){
+        const avg=g.s/g.n, full=Math.round(avg);
+        p.rating=Math.round(avg*10)/10; p.rev=g.n; p._nouveau=false;
+        p.stars='★'.repeat(full)+'☆'.repeat(Math.max(0,5-full));
+        changed=true;
+      }
+    });
+    if(changed && typeof renderPM==='function'){ renderPM(); if(window.__refreshVerif) setTimeout(window.__refreshVerif,80); }
+  };
 
   // ─────────────────────────────────────────────
   // 3. RÉSERVATION STRUCTURÉE (devis) sur la page profil
@@ -3099,13 +3130,14 @@ async function submitAnnonce() {
             av:av[(pitmasters.length+i)%av.length],
             name:_e(row.nom), ville:_e(row.ville||'France'),
             spec:_e(row.specialite||'BBQ à domicile'),
-            stars:'★★★★★', rating:5.0, rev:0, prix:prix, dispo:true,
+            stars:'', rating:0, rev:0, _nouveau:true, prix:prix, dispo:true,
             desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
             tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
             avis:[], _real:true, _email:null, _id:row.id
           });
         });
         renderPM();
+        if(window.abApplyRealRatings) window.abApplyRealRatings();
       });
   }
   if(document.readyState === 'complete'){ tryLoadReal(); }
