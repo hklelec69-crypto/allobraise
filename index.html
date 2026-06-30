@@ -2305,10 +2305,12 @@ async function submitAnnonce() {
 
     const box = document.getElementById('v2-resa-box');
     const _er=window.escHTML||(s=>String(s??''));
+    const _pIdx=(typeof pitmasters!=='undefined')?pitmasters.findIndex(x=>x.name===pitName):-1;
     if(box) box.innerHTML = `<div class="form-success" style="padding:1rem 0">
       <div class="form-success-icon">📅</div>
       <h3 style="color:#fff;font-size:1.1rem">Demande envoyée !</h3>
       <p style="color:#8C8070">${_er(pitName)} a reçu votre demande pour le <strong style="color:#fff">${new Date(date).toLocaleDateString('fr')}</strong>.<br>Réponse rapide par message ou email.</p>
+      ${_pIdx>=0?`<button class="btn-submit" style="margin-top:0.8rem" onclick="startConversation(${_pIdx})"><i class="ti ti-message-2"></i> Suivre ma conversation</button>`:''}
     </div>`;
     toast(`Demande envoyée à ${_er(pitName)} ! 🔥`,'success','📅');
   }
