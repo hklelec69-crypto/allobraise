@@ -243,6 +243,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .profil-name{font-family:'Fraunces',serif;font-size:2.2rem;margin-bottom:4px;color:white}
 .profil-spec{font-size:15px;color:rgba(255,255,255,0.6);margin-bottom:12px}
 .profil-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,0.5)}
+.profil-trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pt-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);padding:5px 11px;border-radius:20px}
+.pt-chip i{font-size:14px}
+.pt-chip.pt-verif{background:rgba(42,122,42,0.92);border-color:transparent}
 .profil-meta span{display:flex;align-items:center;gap:5px}
 .profil-side{display:flex;flex-direction:column;gap:10px;min-width:200px}
 .profil-price-box{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:1.2rem;text-align:center;backdrop-filter:blur(8px)}
@@ -2151,7 +2155,7 @@ async function submitAnnonce() {
           stars:'', rating:0, rev:0, _nouveau:true, prix:prixNum, dispo:true,
           desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
           tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
-          avis:[], _real:true, _email:null, _id:row.id, photo_url:row.photo_url||null
+          avis:[], _real:true, _email:null, _id:row.id, photo_url:row.photo_url||null, _created:row.created_at
         });
       });
       if(typeof renderPM === 'function') renderPM();
@@ -2520,11 +2524,36 @@ async function submitAnnonce() {
         injectReservationBox();
         injectShare();
         injectAvisForm();
+        injectTrustRow(idx);
         const pitName=document.getElementById('profil-name')?.textContent||'';
         if(pitName) loadRealAvis(pitName);
       }, 60);
     };
     window.showProfil._v2hooked=true;
+  }
+
+  // Ligne de réassurance sur la fiche (à la AlloVoisins) — uniquement pour les
+  // VRAIS pitmasters : profil vérifié, ancienneté, contact direct sans commission.
+  // Données factuelles (created_at) — rien d'inventé.
+  function injectTrustRow(idx){
+    const p=(typeof pitmasters!=='undefined')?pitmasters[idx]:null;
+    const main=document.querySelector('#page-profil .profil-main');
+    if(!main) return;
+    const old=main.querySelector('.profil-trust'); if(old) old.remove();
+    if(!p || !p._real) return;
+    const chips=['<span class="pt-chip pt-verif"><i class="ti ti-rosette-discount-check-filled" aria-hidden="true"></i> Profil vérifié</span>'];
+    if(p._created){
+      const d=new Date(p._created);
+      if(!isNaN(d.getTime())){
+        chips.push('<span class="pt-chip"><i class="ti ti-calendar" aria-hidden="true"></i> Membre depuis '+d.toLocaleDateString('fr',{month:'long',year:'numeric'})+'</span>');
+      }
+    }
+    chips.push('<span class="pt-chip"><i class="ti ti-heart-handshake" aria-hidden="true"></i> Contact direct · sans commission</span>');
+    const row=document.createElement('div');
+    row.className='profil-trust';
+    row.innerHTML=chips.join('');
+    const meta=main.querySelector('.profil-meta');
+    if(meta) meta.insertAdjacentElement('afterend', row); else main.appendChild(row);
   }
 
   // ─────────────────────────────────────────────
@@ -3133,7 +3162,7 @@ async function submitAnnonce() {
             stars:'', rating:0, rev:0, _nouveau:true, prix:prix, dispo:true,
             desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
             tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
-            avis:[], _real:true, _email:null, _id:row.id
+            avis:[], _real:true, _email:null, _id:row.id, _created:row.created_at
           });
         });
         renderPM();
