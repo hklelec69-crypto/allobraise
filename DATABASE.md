@@ -68,8 +68,14 @@ son propre identifiant (`client_id`/`user_id = auth.uid()`). Avant, les policies
 ne vérifiaient que `auth.uid() IS NOT NULL`, ce qui permettait à tout compte
 connecté de **forger** de faux avis, réservations, annonces ou profils au nom
 d'autrui. Vérifié : insert légitime accepté, insert au nom d'un tiers refusé
-(`42501`). Reste ouvert (roadmap) : les avis ne sont pas encore **gated** sur une
-transaction réelle (`pitmaster_nom` est du texte libre).
+(`42501`).
+
+**Avis gated sur réservation** : un `INSERT` dans `avis` n'est accepté que s'il
+existe une `reservation` entre l'auteur (`client_id = auth.uid()`) et le
+`pitmaster_nom` visé (sous-requête `EXISTS` dans la policy). Empêche les faux
+avis sur des prestataires jamais sollicités. Vérifié : avis sur pitmaster
+réservé accepté, sur non-réservé refusé (`42501`). Durcissement futur possible :
+exiger `statut = 'acceptee'` (preuve d'une prestation réellement honorée).
 
 ### `pitmasters.email` — masqué aux visiteurs anonymes (RGPD / anti-scraping)
 
