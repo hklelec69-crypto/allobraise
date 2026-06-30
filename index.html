@@ -2117,8 +2117,13 @@ async function submitAnnonce() {
   async function loadRealPitmasters(){
     if(typeof sb === 'undefined' || typeof pitmasters === 'undefined') return;
     try{
+      // Colonnes explicites SANS `email` : la grille publique (lisible en
+      // anonyme) ne doit jamais exposer les emails (anti-scraping/RGPD).
+      // L'email réel est récupéré à la demande via resolvePitEmail() lors d'une
+      // action connectée (réservation/contact).
       const { data, error } = await sb.from('pitmasters')
-        .select('*').eq('actif', true).order('created_at', { ascending:false });
+        .select('id,nom,ville,specialite,tarif,description,actif,created_at,photo_url')
+        .eq('actif', true).order('created_at', { ascending:false });
       if(error || !data || !data.length) return;
       const existingIds = new Set(pitmasters.map(p=>p._id).filter(id=>id!=null));
       const avColors = ['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12'];
@@ -2134,7 +2139,7 @@ async function submitAnnonce() {
           stars:'★★★★★', rating:5.0, rev:0, prix:prixNum, dispo:true,
           desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
           tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
-          avis:[], _real:true, _email:row.email, _id:row.id, photo_url:row.photo_url||null
+          avis:[], _real:true, _email:null, _id:row.id, photo_url:row.photo_url||null
         });
       });
       if(typeof renderPM === 'function') renderPM();
@@ -2193,11 +2198,12 @@ async function submitAnnonce() {
       toast('Créez un compte pour réserver','error','⚠️');
       return;
     }
-    // Trouver l'email réel du pitmaster — les profils de démonstration n'en ont pas
+    // Trouver l'email réel du pitmaster — récupéré à la demande (jamais en
+    // grille). Les profils de démonstration n'en ont pas.
     let pitEmail = null;
     if(typeof pitmasters!=='undefined'){
       const p = pitmasters.find(x=>x.name===pitName);
-      if(p && p._email) pitEmail = p._email;
+      if(p) pitEmail = window.resolvePitEmail ? await window.resolvePitEmail(p) : (p._email||null);
     }
     if(!pitEmail){
       toast('Ce profil est un exemple de démonstration, pas encore disponible à la réservation','error','⚠️');
@@ -2617,7 +2623,25 @@ async function submitAnnonce() {
   // On garde la rétrocompat avec l'id pour ne rien casser.
   // ═══════════════════════════════════════════
 
-  // Trouver l'email d'un pitmaster par son nom
+  // Récupère l'email réel d'un pitmaster À LA DEMANDE. L'email n'est jamais
+  // chargé dans la grille publique (anti-scraping/RGPD : la colonne `email`
+  // est révoquée pour `anon`). Réservé aux actions connectées (la lecture de
+  // la colonne exige le rôle `authenticated`). Met l'email en cache sur l'objet.
+  // Exposé en global : appelé depuis V2 (réservation) ET V3 (contact).
+  window.resolvePitEmail = async function(p){
+    if(!p) return null;
+    if(p._email) return p._email;
+    if(!p._real || !p._id) return null;
+    if(typeof currentUser==='undefined' || !currentUser) return null;
+    try{
+      const { data } = await sb.from('pitmasters').select('email').eq('id', p._id).limit(1);
+      if(data && data[0] && data[0].email){ p._email = data[0].email; return p._email; }
+    }catch(e){}
+    return null;
+  };
+
+  // Trouver l'email d'un pitmaster par son nom (cache uniquement — peut être
+  // null si non encore résolu ; les appelants connectés passent par resolvePitEmail)
   function pitEmailByName(name){
     if(typeof pitmasters==='undefined') return null;
     const p=pitmasters.find(x=>x.name===name);
@@ -2635,7 +2659,7 @@ async function submitAnnonce() {
         return;
       }
       // Vrais pitmasters : convId basé sur email. Pitmasters démo : convId basé sur nom (unique par pitmaster)
-      const pitEmail=p._email||null;
+      const pitEmail=await window.resolvePitEmail(p);
       const toUser=pitEmail||ADMIN_EMAIL;
       const convId=pitEmail
         ?abConvId(currentUser.email,pitEmail)
@@ -3036,7 +3060,7 @@ async function submitAnnonce() {
       if(attempt < 20){ return setTimeout(()=>tryLoadReal(attempt+1), 300); }
       return; // abandon après ~6s
     }
-    sb.from('pitmasters').select('*').eq('actif', true)
+    sb.from('pitmasters').select('id,nom,ville,specialite,tarif,description,actif,created_at,photo_url').eq('actif', true)
       .order('created_at', { ascending:false })
       .then(({data, error})=>{
         if(error || !data || !data.length) return;
@@ -3054,7 +3078,7 @@ async function submitAnnonce() {
             stars:'★★★★★', rating:5.0, rev:0, prix:prix, dispo:true,
             desc:_e(row.description||'Expert BBQ disponible pour vos événements.'),
             tags:(row.specialite||'BBQ').split(/[,·]/).map(s=>_e(s.trim())).filter(Boolean).slice(0,5),
-            avis:[], _real:true, _email:row.email, _id:row.id
+            avis:[], _real:true, _email:null, _id:row.id
           });
         });
         renderPM();
