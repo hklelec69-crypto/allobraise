@@ -2308,18 +2308,31 @@ async function submitAnnonce() {
     const txt=document.getElementById('v2-avis-txt')?.value.trim();
     const pitName=document.getElementById('profil-name')?.textContent||'';
     if(!nom||!txt){ toast('Prénom et avis obligatoires','error','⚠️'); return; }
+    // Avis réservés aux clients connectés (le serveur exige en plus une
+    // réservation existante avec ce pitmaster — anti-faux-avis).
+    if(typeof currentUser==='undefined' || !currentUser){
+      if(typeof openModal==='function') openModal('inscription');
+      toast('Connectez-vous pour laisser un avis','error','⚠️');
+      return;
+    }
     const btn=document.querySelector('#v2-avis-form .btn-submit');
     if(btn){ btn.textContent='Publication...'; btn.disabled=true; }
     let avisErr=null;
     try{
       const { error }=await sb.from('avis').insert({
         pitmaster_nom:pitName, auteur:nom, note:pickedStars,
-        texte:txt, client_id:(currentUser?.id)||null
+        texte:txt, client_id:currentUser.id
       });
       avisErr=error;
     }catch(e){ avisErr=e; }
     if(avisErr){
-      toast('Publication impossible, réessayez','error','⚠️');
+      // 42501 / "row-level security" = règle de gating (pas de réservation)
+      const _code=avisErr.code||''; const _msg=String(avisErr.message||'');
+      if(_code==='42501' || /row-level security/i.test(_msg)){
+        toast('Vous ne pouvez laisser un avis qu\'après avoir réservé cet expert','error','⚠️');
+      } else {
+        toast('Publication impossible, réessayez','error','⚠️');
+      }
       if(btn){ btn.textContent='Publier mon avis'; btn.disabled=false; }
       return;
     }
