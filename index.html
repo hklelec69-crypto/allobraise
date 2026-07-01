@@ -1144,7 +1144,7 @@ function abRefreshFavProfilBtn(idx){
   const faved=abIsFav(p.name);
   btn.classList.toggle('faved',faved);
   const icon=document.getElementById('fav-profil-icon');
-  if(icon) icon.className='ti '+(faved?'ti-heart-filled':'ti-heart');
+  if(icon) icon.className='ti ti-heart';
   const label=document.getElementById('fav-profil-label');
   if(label) label.textContent=faved?'Dans vos favoris':'Ajouter aux favoris';
 }
@@ -1174,7 +1174,7 @@ function renderPM(){
   document.getElementById('grid-pm').innerHTML=filtered.length?filtered.map(p=>{
     const idx=pitmasters.indexOf(p);
     return `<div class="pcard reveal" onclick="showProfil(${idx})">
-  <button class="pcard-fav${abIsFav(p.name)?' faved':''}" onclick="abToggleFav(event,${idx})" title="${abIsFav(p.name)?'Retirer des favoris':'Ajouter aux favoris'}" aria-label="Favoris"><i class="ti ${abIsFav(p.name)?'ti-heart-filled':'ti-heart'}" aria-hidden="true"></i></button>
+  <button class="pcard-fav${abIsFav(p.name)?' faved':''}" onclick="abToggleFav(event,${idx})" title="${abIsFav(p.name)?'Retirer des favoris':'Ajouter aux favoris'}" aria-label="Favoris"><i class="ti ti-heart" aria-hidden="true"></i></button>
   <div class="pcard-top">
     ${pmAvatarHtml(p,'avatar')}
     <div class="pcard-info">
@@ -1205,7 +1205,7 @@ function renderPM(){
       }
       const _ev=window.escHTML||(s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
       const r=window.ABGeo?window.ABGeo.RADIUS:100;
-      note.innerHTML='<i class="ti ti-map-pin-filled" style="color:var(--fire)"></i> <span><strong>'+filtered.length+'</strong> expert'+(filtered.length>1?'s':'')+' autour de <strong>'+_ev(villeFiltre)+'</strong> · jusqu\'à '+r+' km</span>';
+      note.innerHTML='<i class="ti ti-map-pin" style="color:var(--fire)"></i> <span><strong>'+filtered.length+'</strong> expert'+(filtered.length>1?'s':'')+' autour de <strong>'+_ev(villeFiltre)+'</strong> · jusqu\'à '+r+' km</span>';
       note.style.display='';
     } else if(note){ note.style.display='none'; }
   })();
@@ -2175,7 +2175,7 @@ async function submitAnnonce() {
         const badge=document.createElement('span');
         badge.className='v2-badge-verif';
         badge.style.marginLeft='6px';
-        badge.innerHTML='<i class="ti ti-rosette-discount-check-filled"></i> Vérifié';
+        badge.innerHTML='<i class="ti ti-rosette-discount-check"></i> Vérifié';
         nameEl.appendChild(badge);
       }
     });
@@ -2543,7 +2543,7 @@ async function submitAnnonce() {
     if(!main) return;
     const old=main.querySelector('.profil-trust'); if(old) old.remove();
     if(!p || !p._real) return;
-    const chips=['<span class="pt-chip pt-verif"><i class="ti ti-rosette-discount-check-filled" aria-hidden="true"></i> Profil vérifié</span>'];
+    const chips=['<span class="pt-chip pt-verif"><i class="ti ti-rosette-discount-check" aria-hidden="true"></i> Profil vérifié</span>'];
     if(p._created){
       const d=new Date(p._created);
       if(!isNaN(d.getTime())){
