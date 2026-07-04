@@ -26,8 +26,6 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🔥</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🔥</text></svg>">
 <!-- Resource hints : ouvre les connexions vers les domaines tiers le plus tôt possible -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://ewuxahvqyncovfdkitqp.supabase.co">
 <!-- Données structurées (statiques, toujours présentes même si le JS échoue) -->
@@ -45,7 +43,9 @@
 {"@type":"Question","name":"Comment créer mon profil expert ?","acceptedAnswer":{"@type":"Answer","text":"Cliquez sur « Devenir expert BBQ » et remplissez votre profil (spécialité, ville, tarif, photo) — c'est gratuit et ça prend 2 minutes. Vous recevez ensuite les demandes directement par message."}}
 ]}
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<!-- Polices auto-hébergées (RGPD : plus d'appel à fonts.googleapis.com, donc plus
+     de transfert d'IP vers Google) — voir fonts/fonts.css -->
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
