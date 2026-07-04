@@ -665,7 +665,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
         <h4>Plateforme</h4>
         <a href="#" onclick="document.getElementById('main-section').scrollIntoView({behavior:'smooth'})">Trouver un expert BBQ</a>
         <a href="#" onclick="openModal('annonce')">Poster une annonce</a>
-        <a href="#" onclick="openModal('pitmaster')">Devenir expert BBQ</a>
+        <a href="#devenir-expert" onclick="showPage('devenir-expert')">Devenir expert BBQ</a>
         <a href="#" onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})">Comment ça marche</a>
       </div>
       <div class="footer-col">
@@ -1094,6 +1094,48 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
   </div>
 </div>
 
+<!-- PAGE DEVENIR EXPERT — landing de recrutement pitmasters, partageable (#devenir-expert) -->
+<div id="page-devenir-expert" class="hidden">
+  <nav style="display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(255,255,255,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)">
+    <button class="btn-back" onclick="showPage('home')" style="color:var(--dark);font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-arrow-left"></i> Retour</button>
+    <div class="logo" onclick="showPage('home')"><div class="logo-dot"></div> Allo Braise</div>
+    <div style="width:80px"></div>
+  </nav>
+  <div class="legal-hero">
+    <h1>Vivez de votre passion BBQ 🔥</h1>
+    <p>Recevez des demandes de clients près de chez vous — gratuitement, sans commission</p>
+  </div>
+  <div class="legal-body">
+    <div class="legal-badge"><i class="ti ti-flame"></i> 100% gratuit · 0% commission · Paiement direct</div>
+
+    <h2>Pourquoi Allo Braise ?</h2>
+    <p><strong>Vous gardez 100% de ce que vous facturez.</strong> Allo Braise ne prend aucune commission, aucun abonnement, aucun frais caché : le client vous paie directement, au tarif que <em>vous</em> fixez. Nous mettons en relation, vous faites le reste.</p>
+
+    <h3><i class="ti ti-clock" style="color:var(--fire)"></i> Votre profil en 2 minutes</h3>
+    <p>Nom, ville, spécialité (fumoir, halal, végétarien, plancha…), tarif de départ, une photo — et votre profil est en ligne, visible par les clients de votre région.</p>
+
+    <h3><i class="ti ti-message-2" style="color:var(--fire)"></i> Des demandes directes, sans démarchage</h3>
+    <p>Les clients vous contactent via la messagerie intégrée et par email : date, nombre de convives, lieu, budget. Vous acceptez ou refusez en un clic depuis votre tableau de bord.</p>
+
+    <h3><i class="ti ti-adjustments" style="color:var(--fire)"></i> Vous gardez le contrôle</h3>
+    <p>Vos prix, votre zone, vos disponibilités : activez ou mettez en pause votre profil à tout moment. Vos avis clients sont vérifiés — seul un client qui a réellement réservé peut en laisser un.</p>
+
+    <h3><i class="ti ti-device-mobile" style="color:var(--fire)"></i> Comme une app, sans app</h3>
+    <p>Ajoutez Allo Braise à l'écran d'accueil de votre téléphone : vos demandes et messages vous suivent partout.</p>
+
+    <div style="text-align:center;margin:2.5rem 0 1rem">
+      <button class="btn-solid" style="padding:1rem 2.4rem;font-size:16px" onclick="openModal('pitmaster')">Créer mon profil gratuit 🔥</button>
+      <p style="font-size:12px;color:var(--muted);margin-top:0.8rem">Sans engagement — supprimez ou mettez en pause votre profil quand vous voulez.</p>
+    </div>
+
+    <div class="legal-footer-nav">
+      <a onclick="showLegal('faq')">Questions fréquentes</a>
+      <a onclick="showLegal('cgu')">CGU</a>
+      <a onclick="showPage('home')">← Retour à l'accueil</a>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── CONFIG EMAILJS ──
 const EMAILJS_PUBLIC_KEY = 'VrsW0bkAwp1GvJI0_';
@@ -1322,6 +1364,7 @@ function showPage(page){
   document.getElementById('page-confidentialite').classList.toggle('hidden',page!=='confidentialite');
   document.getElementById('page-mentions').classList.toggle('hidden',page!=='mentions');
   document.getElementById('page-faq').classList.toggle('hidden',page!=='faq');
+  document.getElementById('page-devenir-expert').classList.toggle('hidden',page!=='devenir-expert');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -4209,12 +4252,12 @@ async function submitAnnonce() {
   if(window.__abRouter) return;
   window.__abRouter=true;
 
-  var SIMPLE=['cgu','confidentialite','mentions','faq'];
+  var SIMPLE=['cgu','confidentialite','mentions','faq','devenir-expert'];
   var lastSet=null; // dernier hash posé par nous-mêmes (pour ignorer notre propre hashchange)
 
   // Titre de page dynamique par vue (onglets, favoris, partages, SEO).
   var BASE_TITLE=document.title;
-  var TITLES={cgu:"Conditions Générales d'Utilisation",confidentialite:"Politique de confidentialité",mentions:"Mentions légales",faq:"Questions fréquentes"};
+  var TITLES={cgu:"Conditions Générales d'Utilisation",confidentialite:"Politique de confidentialité",mentions:"Mentions légales",faq:"Questions fréquentes","devenir-expert":"Devenir expert BBQ"};
   function setTitle(label){ try{ document.title = label ? (label+' · Allo Braise') : BASE_TITLE; }catch(e){} }
 
   function slug(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
