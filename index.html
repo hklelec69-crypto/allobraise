@@ -28,6 +28,8 @@
 <!-- Resource hints : ouvre les connexions vers les domaines tiers le plus tôt possible -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://ewuxahvqyncovfdkitqp.supabase.co">
+<!-- LCP : précharge l'image de fond du hero (élément LCP) au lieu d'attendre le parse CSS -->
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=60">
 <!-- Données structurées (statiques, toujours présentes même si le JS échoue) -->
 <script type="application/ld+json" id="v2-jsonld">
 {"@context":"https://schema.org","@type":"LocalBusiness","name":"Allo Braise","description":"Plateforme de mise en relation avec des experts BBQ qui se déplacent à domicile, partout en France.","url":"https://allôbraise.fr","image":"https://allôbraise.fr/og-image.png","priceRange":"€€","areaServed":["France","Lyon","Paris","Marseille","Bordeaux","Toulouse","Lille","Nantes","Strasbourg","Rennes"],"knowsLanguage":"fr-FR"}
@@ -46,7 +48,10 @@
 <!-- Polices auto-hébergées (RGPD : plus d'appel à fonts.googleapis.com, donc plus
      de transfert d'IP vers Google) — voir fonts/fonts.css -->
 <link rel="stylesheet" href="fonts/fonts.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css">
+<!-- Icônes différées : non critiques au premier écran (le hero n'en contient pas),
+     retire ~90 Ko de CSS bloquant du chemin critique -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
@@ -95,7 +100,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 
 /* ── HERO ── */
 .hero{position:relative;min-height:92vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0E0A06}
-.hero-bg{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=80');background-size:cover;background-position:center;opacity:0.35;transition:transform 8s ease-out}
+.hero-bg{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=60');background-size:cover;background-position:center;opacity:0.35;transition:transform 8s ease-out}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,10,6,0.4) 0%,rgba(14,10,6,0.2) 40%,rgba(14,10,6,0.85) 100%)}
 .hero-content{position:relative;z-index:2;text-align:center;padding:2rem;max-width:800px}
 .hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 14px;font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:1.5rem;backdrop-filter:blur(8px)}
@@ -202,6 +207,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .a11{background:#FEE8E8;color:#A01010}.a12{background:#E8F0FE;color:#1040A0}
 .pcard-info{flex:1;min-width:0}
 .pcard-name{font-weight:500;font-size:15px}
+.pcard-name a{color:inherit;text-decoration:none}
+.pcard-name a:hover{text-decoration:underline}
 .pcard-new{font-size:12px;color:var(--fire-text,#B83909);font-weight:600;display:inline-flex;align-items:center;gap:4px}
 .pcard-loc{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:2px}
 .dispo-dot{width:6px;height:6px;border-radius:50%;background:#22C55E;flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
@@ -538,7 +545,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
           <p>L'expert se déplace avec son matériel, gère tout de A à Z. Vous n'avez plus qu'à savourer avec vos invités. Simple comme un coup de fil.</p>
         </div>
       </div>
-      <p style="text-align:center;margin-top:1.5rem"><a href="#" onclick="showLegal('faq')" style="color:var(--fire3);font-weight:500;text-decoration:none">Voir toutes les questions fréquentes →</a></p>
+      <p style="text-align:center;margin-top:1.5rem"><a href="#faq" onclick="showLegal('faq')" style="color:var(--fire3);font-weight:500;text-decoration:none">Voir toutes les questions fréquentes →</a></p>
     </div>
   </div>
 
@@ -662,10 +669,10 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
       </div>
       <div class="footer-col">
         <h4>Infos</h4>
-        <a href="#" onclick="showLegal('faq')">FAQ</a>
-        <a href="#" onclick="showLegal('mentions')">À propos & Mentions légales</a>
-        <a href="#" onclick="showLegal('cgu')">CGU</a>
-        <a href="#" onclick="showLegal('confidentialite')">Confidentialité</a>
+        <a href="#faq" onclick="showLegal('faq')">FAQ</a>
+        <a href="#mentions" onclick="showLegal('mentions')">À propos & Mentions légales</a>
+        <a href="#cgu" onclick="showLegal('cgu')">CGU</a>
+        <a href="#confidentialite" onclick="showLegal('confidentialite')">Confidentialité</a>
         <a href="mailto:contact@allobraise.fr">Contact</a>
       </div>
     </div>
@@ -1054,7 +1061,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
 
     <h2>Paiement</h2>
     <h3>Comment se passe le paiement ?</h3>
-    <p>Le paiement se fait <strong>directement entre vous et l'expert</strong>, selon les modalités que vous convenez ensemble (espèces, virement, etc.). Allo Braise ne perçoit, ne détient ni ne transfère aucun fonds — voir nos <a href="#" onclick="showLegal('cgu')" style="color:var(--fire)">CGU</a>.</p>
+    <p>Le paiement se fait <strong>directement entre vous et l'expert</strong>, selon les modalités que vous convenez ensemble (espèces, virement, etc.). Allo Braise ne perçoit, ne détient ni ne transfère aucun fonds — voir nos <a href="#cgu" onclick="showLegal('cgu')" style="color:var(--fire)">CGU</a>.</p>
     <h3>Faut-il verser un acompte ?</h3>
     <p>C'est à convenir librement avec l'expert au moment de la réservation. Nous recommandons de toujours clarifier les conditions (acompte, annulation) par écrit dans la conversation avant le jour J.</p>
 
@@ -1173,12 +1180,15 @@ function renderPM(){
   document.getElementById('count-pm').textContent=filtered.length;
   document.getElementById('grid-pm').innerHTML=filtered.length?filtered.map(p=>{
     const idx=pitmasters.indexOf(p);
+    // Clé de route IDENTIQUE à pitKey() du routeur V7 (id:<uuid> ou n:<slug>) :
+    // le nom devient une vraie ancre crawlable (#profil/<clé>) — SEO + clic-milieu.
+    const pkey=p._id?('id:'+p._id):('n:'+String(p.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
     return `<div class="pcard reveal" onclick="showProfil(${idx})">
   <button class="pcard-fav${abIsFav(p.name)?' faved':''}" onclick="abToggleFav(event,${idx})" title="${abIsFav(p.name)?'Retirer des favoris':'Ajouter aux favoris'}" aria-label="Favoris"><i class="ti ti-heart" aria-hidden="true"></i></button>
   <div class="pcard-top">
     ${pmAvatarHtml(p,'avatar')}
     <div class="pcard-info">
-      <div class="pcard-name">${p.name}</div>
+      <div class="pcard-name"><a href="#profil/${encodeURIComponent(pkey)}" onclick="event.stopPropagation()">${p.name}</a></div>
       <div class="pcard-loc">${p.dispo?'<div class="dispo-dot"></div>':''} ${p.ville}${(p._dist!=null&&p._dist>0)?' · à '+p._dist+' km':''}${p.dispo?' · Disponible':' · Indisponible'}</div>
       ${p.activeAgo?`<div class="pcard-active"><div class="active-dot-sm"></div> Actif il y a ${p.activeAgo}</div>`:''}
     </div>
@@ -2410,7 +2420,7 @@ async function submitAnnonce() {
     const fab=document.createElement('button');
     fab.id='v2-fab-demandes';
     fab.className='v2-fab-demandes hidden';
-    fab.setAttribute('aria-label','Mes demandes reçues');
+    fab.setAttribute('aria-label','Mes demandes');
     fab.innerHTML='<i class="ti ti-calendar-event"></i><span class="v2-fab-badge hidden" id="v2-demandes-badge">0</span>';
     fab.onclick=openDemandesPanel;
     document.body.appendChild(fab);
@@ -2420,18 +2430,21 @@ async function submitAnnonce() {
     const fab=document.getElementById('v2-fab-demandes');
     if(!fab || typeof currentUser==='undefined' || !currentUser){ if(fab) fab.classList.add('hidden'); return; }
     try{
+      // demandes ENVOYÉES par le client (suivi de statut attente/acceptée/refusée)
       const { data } = await sb.from('reservations').select('*')
-        .eq('client_email', currentUser.email);
+        .eq('client_email', currentUser.email).order('created_at',{ascending:false});
       // un pitmaster voit les demandes adressées à son email
       const { data: mine } = await sb.from('reservations').select('*')
         .eq('pitmaster_email', currentUser.email).order('created_at',{ascending:false});
-      if(mine && mine.length){
+      const envoyees = data || [];
+      fab._envoyees = envoyees;
+      if((mine && mine.length) || envoyees.length){
         fab.classList.remove('hidden');
-        const enAttente=mine.filter(r=>r.statut==='attente').length;
+        const enAttente=(mine||[]).filter(r=>r.statut==='attente').length;
         const badge=document.getElementById('v2-demandes-badge');
         if(enAttente>0){ badge.textContent=enAttente; badge.classList.remove('hidden'); }
         else badge.classList.add('hidden');
-        fab._demandes=mine;
+        fab._demandes=mine||[];
       } else { fab.classList.add('hidden'); }
     }catch(e){ fab.classList.add('hidden'); }
   }
@@ -2439,11 +2452,28 @@ async function submitAnnonce() {
   function openDemandesPanel(){
     const fab=document.getElementById('v2-fab-demandes');
     const demandes=(fab && fab._demandes)||[];
+    const envoyees=(fab && fab._envoyees)||[];
     const box=document.getElementById('modal-box');
     const _e=window.escHTML||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
     box._demandes=demandes;
-    box.innerHTML=`<div class="modal-head"><h2>Mes demandes reçues</h2><button class="modal-x" onclick="closeModal()">✕</button></div>
-    <div class="modal-body">${demandes.length? demandes.map((r,i)=>{
+    // Suivi côté client : demandes envoyées avec leur statut (aucune action, lecture seule)
+    const envoyeesHtml = envoyees.length ? `<h3 style="font-size:14px;margin:${demandes.length?'1.4rem':'0'} 0 0.8rem;color:var(--muted)">Mes demandes envoyées</h3>`+envoyees.map(r=>{
+      const sc=r.statut==='acceptee'?'v2-status-acceptee':r.statut==='refusee'?'v2-status-refusee':'v2-status-attente';
+      const st=r.statut==='acceptee'?'Acceptée ✓':r.statut==='refusee'?'Refusée':'En attente de réponse';
+      return `<div class="v2-demande-card">
+        <div class="v2-demande-head">
+          <div class="v2-demande-title">${_e(r.pitmaster_nom||'Expert BBQ')}</div>
+          <span class="v2-status-pill ${sc}">${st}</span>
+        </div>
+        <div class="v2-demande-meta">
+          <span><i class="ti ti-calendar"></i>${r.date_event?new Date(r.date_event).toLocaleDateString('fr'):'?'}</span>
+          <span><i class="ti ti-users"></i>${_e(String(r.personnes||'?'))} pers.</span>
+          <span><i class="ti ti-coin"></i>${_e(r.budget||'à discuter')}</span>
+        </div>
+      </div>`;
+    }).join('') : '';
+    box.innerHTML=`<div class="modal-head"><h2>Mes demandes</h2><button class="modal-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${demandes.length?`<h3 style="font-size:14px;margin:0 0 0.8rem;color:var(--muted)">Demandes reçues</h3>`:''}${demandes.length? demandes.map((r,i)=>{
       const statusClass=r.statut==='acceptee'?'v2-status-acceptee':r.statut==='refusee'?'v2-status-refusee':'v2-status-attente';
       const statusTxt=r.statut==='acceptee'?'Acceptée':r.statut==='refusee'?'Refusée':'En attente';
       return `<div class="v2-demande-card" data-ri="${i}">
@@ -2461,7 +2491,7 @@ async function submitAnnonce() {
           <button class="v2-btn-refuse" data-act="ref">Refuser</button>
         </div>`:`<div style="font-size:12px;color:var(--muted)">Contact : ${_e(r.client_email||'')}</div>`}
       </div>`;
-    }).join('') : '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">Aucune demande pour l\'instant.<br>Partagez votre profil pour recevoir des réservations !</div>'}</div>`;
+    }).join('') : ''}${envoyeesHtml}${(!demandes.length && !envoyees.length)?'<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">Aucune demande pour l\'instant.</div>':''}</div>`;
     document.getElementById('modal-wrap').classList.add('open');
     if(!box._demDelegate){
       box._demDelegate=true;
@@ -3470,6 +3500,18 @@ async function submitAnnonce() {
     const tEl = document.getElementById('pm-title'); if(tEl) tEl.textContent=_pm.nom||'';
     const sEl = document.getElementById('pm-hspec'); if(sEl) sEl.textContent=_pm.specialite||'';
     _setAvailUI(_pm.actif !== false);
+    // Relance photo : un profil avec photo reçoit nettement plus de demandes
+    // (effet Airbnb). Bannière visible tant que photo_url est vide.
+    const hero=document.querySelector('#page-pitmaster-dashboard .pm-hero');
+    const oldNudge=document.getElementById('pm-photo-nudge');
+    if(oldNudge) oldNudge.remove();
+    if(hero && !_pm.photo_url){
+      const n=document.createElement('div');
+      n.id='pm-photo-nudge';
+      n.style.cssText='background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:10px 14px;margin:0.9rem auto 0;max-width:920px;display:flex;align-items:center;gap:10px;font-size:13px;color:#fff;flex-wrap:wrap';
+      n.innerHTML='<i class="ti ti-camera" style="color:var(--fire3);font-size:18px" aria-hidden="true"></i><span style="flex:1;min-width:200px">Ajoutez votre photo : un profil avec photo inspire confiance et reçoit plus de demandes.</span><button class="pm-btn pm-btn-fire" style="padding:6px 14px;font-size:13px" onclick="PMDash.tab(\'profil\',document.querySelector(\'.pm-tab\'));setTimeout(function(){var i=document.getElementById(\'pm-photo-input\');if(i)i.click();},150)">Ajouter ma photo</button>';
+      hero.appendChild(n);
+    }
   }
 
   function _setAvailUI(on){
