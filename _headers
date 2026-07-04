@@ -17,3 +17,10 @@
   Cache-Control: no-cache
 /404.html
   Cache-Control: no-cache
+
+# Le service worker et le manifest doivent se mettre à jour immédiatement,
+# sinon une ancienne stratégie de cache peut rester active des heures.
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
