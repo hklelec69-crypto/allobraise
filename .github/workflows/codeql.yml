@@ -1,0 +1,33 @@
+# Analyse statique de sécurité (SAST) — gratuit sur dépôt public.
+# Scanne le JavaScript (y compris inline via l'extraction JS/TS de CodeQL)
+# à chaque push/PR sur main + une passe hebdomadaire.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # lundi 06:00 UTC
+
+jobs:
+  analyze:
+    name: Analyse CodeQL (JavaScript)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Analyser
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript'
