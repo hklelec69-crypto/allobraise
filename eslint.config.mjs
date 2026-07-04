@@ -39,6 +39,17 @@ export default [
     },
   },
 
+  // Service worker (environnement dédié : self, caches, fetch…)
+  {
+    files: ['sw.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: { ...globals.serviceworker },
+    },
+    rules: { 'no-unused-vars': ['warn', { argsIgnorePattern: '^e$' }] },
+  },
+
   // Tests unitaires Node + scripts CI (CommonJS)
   {
     files: ['test/**/*.js', '.github/scripts/**/*.js'],

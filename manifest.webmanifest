@@ -1,0 +1,16 @@
+{
+  "name": "Allo Braise — Experts BBQ à domicile",
+  "short_name": "Allo Braise",
+  "description": "Trouvez un expert BBQ qui se déplace chez vous, partout en France. Direct, sans commission.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0E0A06",
+  "theme_color": "#D4420A",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -24,7 +24,8 @@
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://allôbraise.fr">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🔥</text></svg>">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='28'>🔥</text></svg>">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <!-- Resource hints : ouvre les connexions vers les domaines tiers le plus tôt possible -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://ewuxahvqyncovfdkitqp.supabase.co">
@@ -4295,6 +4296,15 @@ async function submitAnnonce() {
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+</script>
+<script>
+/* PWA : enregistre le service worker APRÈS le chargement complet (hors chemin
+   critique). Le SW est network-first — il ne peut pas servir de HTML périmé. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
