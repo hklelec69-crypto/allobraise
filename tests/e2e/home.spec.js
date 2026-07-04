@@ -22,7 +22,8 @@ test.describe("Page d'accueil", () => {
 
   test('métadonnées SEO essentielles présentes', async ({ page }) => {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
-    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
+    // 2 blocs de données structurées : LocalBusiness + FAQPage
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(2);
     await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
   });
 });
