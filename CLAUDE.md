@@ -54,6 +54,12 @@ Application **monofichier, HTML/JS vanilla, sans build, sans framework**.
 - **`_headers`** — en-têtes HTTP Cloudflare (CSP, HSTS…). **`netlify.toml`** —
   équivalent Netlify (hôte de secours).
 - **`robots.txt`, `sitemap.xml`, `404.html`, `og-image.png`** — SEO / branding.
+- **`fonts/`** — polices auto-hébergées (RGPD : plus d'appel à Google Fonts).
+- **`manifest.webmanifest`, `sw.js`, `icons/`** — PWA installable. ⚠️ `sw.js`
+  est volontairement **network-first** (jamais de HTML périmé) — ne pas le
+  transformer en cache-first ; incrémenter `VERSION` à chaque évolution.
+- **Routage** : hash (`#cgu`, `#faq`, `#devenir-expert`, `#profil/<clé>`,
+  `#pitmaster-dashboard`) restauré par le module V7 au chargement.
 
 ### Convention critique : les modules sont ADDITIFS
 

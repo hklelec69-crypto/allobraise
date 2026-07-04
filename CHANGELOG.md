@@ -3,6 +3,49 @@
 Toutes les évolutions notables du projet. Format inspiré de _Keep a Changelog_.
 Dates au format AAAA-MM-JJ.
 
+## [Itération audit & durcissement] — 2026-07
+
+### Sécurité / confiance
+
+- **RLS anti-forge** : les policies INSERT de `avis`, `reservations`, `annonces`
+  et `pitmasters` exigent désormais que la ligne porte l'identifiant de
+  l'utilisateur authentifié (`client_id`/`user_id = auth.uid()`) — un compte ne
+  peut plus forger de données au nom d'autrui (vérifié : 42501).
+- **Avis gated sur réservation** : un avis n'est accepté que si l'auteur a une
+  réservation avec ce pitmaster. Message UI explicite en cas de refus.
+- **`pitmasters.email` masqué aux anonymes** (privilège colonne révoqué pour
+  `anon`) ; la grille charge des colonnes explicites sans email, récupéré à la
+  demande via `resolvePitEmail()` pour les actions connectées.
+- **Upload photo réparé** : policy SELECT manquante sur `storage.objects`
+  faisait échouer l'`INSERT … RETURNING` de storage-api (400).
+- **Notes honnêtes** : les vrais profils sans avis affichent « Nouveau » (au
+  lieu d'un 5,0★ codé en dur) ; note réelle agrégée depuis la table `avis`.
+- **Chiffres marketing fabriqués retirés** (« 50+ experts », « 98 % satisfaits »)
+  → remplacés par des arguments vrais (0 % commission, paiement direct).
+
+### Ajouté
+
+- **PWA installable** : `manifest.webmanifest`, icônes de marque, `sw.js`
+  network-first (jamais de HTML périmé), fonctionnement hors-ligne de secours.
+- **Page `#devenir-expert`** : landing de recrutement pitmasters partageable
+  (routée, crawlable, titre dédié), CTA vers la création de profil.
+- **Suivi des demandes côté client** : le panneau « Mes demandes » affiche
+  aussi les demandes envoyées avec leur statut (attente/acceptée/refusée).
+- **FAQPage JSON-LD** (résultats enrichis Google) ; ligne de réassurance sur
+  la fiche (« Profil vérifié · Membre depuis · Sans commission »).
+- **Polices auto-hébergées** (`fonts/`) : plus d'appel à Google Fonts (RGPD).
+
+### Corrigé
+
+- Routage : le dashboard pitmaster est restauré au refresh (`#pitmaster-dashboard`).
+- CSP : `wss:` ajouté à `connect-src` (realtime Supabase bloqué).
+- `openDash` : `.catch()` sur un builder Postgrest (thenable sans catch) → TypeError.
+- Icônes Tabler : classes `-filled` inexistantes en v3 → icônes invisibles
+  (favoris, pin géo, badge Vérifié) remplacées par les équivalents valides.
+- Cibles tactiles < 24 px (`btn-back`, fermeture messagerie) — WCAG 2.5.8.
+- SEO : cartes pitmasters et liens légaux transformés en vraies ancres
+  crawlables ; LCP : image hero allégée + preload, CSS icônes différé.
+
 ## [Non daté — itération CTO] — 2026-06
 
 ### Corrigé
