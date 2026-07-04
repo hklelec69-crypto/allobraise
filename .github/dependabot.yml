@@ -1,0 +1,17 @@
+# Surveillance supply-chain : PR automatiques pour les mises à jour de
+# sécurité des devDependencies npm et des actions GitHub utilisées en CI.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-tooling:
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
