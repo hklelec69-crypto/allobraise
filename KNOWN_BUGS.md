@@ -26,12 +26,28 @@ chaque correction. Sévérités : 🔴 critique · 🟠 importante · 🟡 mineu
 | B-15 | 🟡   | Pas de debounce sur l'autocomplétion ville (`update` appelé 2×/frappe)                                                    | `update` debouncé (200 ms) + listener `input` redondant retiré — ex-B-OPEN-4                                                |
 | B-16 | 🟡   | `target-size` : liens du footer < 24px (cibles tactiles mobile)                                                           | Padding vertical sur `.footer-col a` (~36px) → audit `target-size` vert, **a11y 95 → 100** — ex-B-OPEN-7                    |
 
+### Corrigés — itération 2026-07 (audit & durcissement)
+
+| ID   | Sév. | Problème                                                                                                     | Correctif                                                                                      |
+| ---- | ---- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| B-17 | 🔴   | Upload photo en 400 : policy SELECT manquante sur `storage.objects` (le `INSERT…RETURNING` violait la RLS)   | Migration 002/003 — policy SELECT propriétaire sur le bucket                                   |
+| B-18 | 🔴   | Policies INSERT non liantes → forge d'avis/réservations/annonces/profils au nom d'autrui                     | Migration 004 — `client_id`/`user_id = auth.uid()` exigé (vérifié : 42501)                     |
+| B-19 | 🟠   | Avis publiables sans jamais avoir réservé (faux avis)                                                        | Migration 005 — gating sur réservation existante + message UI explicite                        |
+| B-20 | 🟠   | `pitmasters.email` lisible par les visiteurs anonymes (scraping/RGPD)                                        | Migration 006 + grille en colonnes explicites + `resolvePitEmail()` à la demande               |
+| B-21 | 🟠   | Refresh du dashboard pitmaster → retour à l'accueil ; realtime bloqué par la CSP ; crash `.catch()` openDash | Route `#pitmaster-dashboard` restaurée ; `wss:` dans connect-src ; `.then(undefined,…)`        |
+| B-22 | 🟠   | Vrais profils affichés « 5,0 ★ · 0 avis » (note fabriquée) + stats marketing inventées (« 50+ », « 98 % »)   | État « Nouveau », agrégation des vraies notes, chiffres remplacés par des arguments vrais      |
+| B-23 | 🟡   | Icônes invisibles : classes Tabler `-filled` inexistantes en v3 (favoris, pin géo, badge Vérifié)            | Remplacées par les équivalents outline valides                                                 |
+| B-24 | 🟡   | Cibles tactiles < 24 px (`btn-back`, fermeture messagerie) — WCAG 2.5.8                                      | `min-height`/`min-width` 32 px (mesuré après correctif)                                        |
+| B-25 | 🟡   | 20+ violations de contraste axe-core (texte `--fire` sur fonds clairs, pages légales/CTA)                    | `--fire-text` appliqué, CTA approfondi, lien souligné — 0 violation sérieuse/critique restante |
+
 ---
 
 ## 🔓 Ouverts (à traiter — code)
 
 **Aucun.** Tous les bugs code identifiés par audit sont corrigés.
-Accessibilité Lighthouse = **100**, color-contrast et target-size au vert.
+Accessibilité : Lighthouse **100** + scan axe-core (WCAG 2A/AA) en CI sans
+violation sérieuse/critique ; régression visuelle et budgets Lighthouse gardés
+par la CI ; erreurs prod capturées dans `client_errors` (lecture via SQL).
 
 Restent uniquement des items inhérents à l'architecture **sans build** (JS/CSS
 non minifiés, règles CSS inutilisées) — les corriger imposerait une étape de
