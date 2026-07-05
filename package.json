@@ -17,6 +17,7 @@
     "*.{json,md,mjs,css}": "prettier --write"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "chrome-launcher": "^1.2.1",

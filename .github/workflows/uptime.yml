@@ -1,0 +1,27 @@
+# Moniteur d'uptime sans SaaS : ping du site toutes les 30 min.
+# Si le site ne répond pas en 200, le job échoue → GitHub notifie par email
+# le propriétaire du dépôt (réglage par défaut des notifications Actions).
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping page d'accueil
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 https://allobraise.pages.dev/)
+          echo "HTTP $code"
+          [ "$code" = "200" ] || { echo "::error::Site down (HTTP $code)"; exit 1; }
+
+      - name: Ping service worker et manifest
+        run: |
+          for p in /sw.js /manifest.webmanifest; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "https://allobraise.pages.dev$p")
+            echo "$p -> HTTP $code"
+            [ "$code" = "200" ] || { echo "::error::$p down (HTTP $code)"; exit 1; }
+          done

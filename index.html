@@ -122,7 +122,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2
 .search-input i{color:var(--muted);font-size:18px;flex-shrink:0}
 .search-input input{flex:1;border:none;outline:none;background:none;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--dark)}
 .search-input input::placeholder{color:var(--muted)}
-.btn-search{background:var(--fire);color:white;border:none;padding:0 1.4rem;border-radius:8px;font-size:14px;font-weight:500;height:46px;transition:all 0.2s;white-space:nowrap}
+.btn-search{background:linear-gradient(135deg,#B83909,#C8400A);color:white;border:none;padding:0 1.4rem;border-radius:8px;font-size:14px;font-weight:500;height:46px;transition:all 0.2s;white-space:nowrap}
 .btn-search:hover{background:var(--fire2)}
 .search-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .stag{background:white;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:12px;cursor:pointer;transition:all 0.15s}
@@ -391,12 +391,12 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
 .legal-hero p{color:#8C8070;font-size:14px}
 .legal-body{max-width:760px;margin:0 auto;padding:3rem 2rem 5rem}
 .legal-body h2{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--dark);margin:2.5rem 0 1rem;padding-bottom:8px;border-bottom:2px solid var(--fire);display:inline-block}
-.legal-body h3{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--fire);margin:1.8rem 0 0.7rem}
+.legal-body h3{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--fire-text);margin:1.8rem 0 0.7rem}
 .legal-body p,.legal-body li{font-size:14px;color:#555;line-height:1.9;margin-bottom:0.8rem}
 .legal-body ul{padding-left:1.4rem;margin-bottom:1rem}
 .legal-body li{list-style:disc}
 .legal-body strong{color:var(--dark)}
-.legal-badge{display:inline-flex;align-items:center;gap:6px;background:#FEF0E8;border:1px solid rgba(212,66,10,0.2);color:var(--fire);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:500;margin-bottom:2rem}
+.legal-badge{display:inline-flex;align-items:center;gap:6px;background:#FEF0E8;border:1px solid rgba(212,66,10,0.2);color:var(--fire-text);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:500;margin-bottom:2rem}
 .legal-box{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--fire);border-radius:8px;padding:1.2rem 1.5rem;margin:1.5rem 0}
 .legal-box p{margin:0;font-size:13px;color:var(--dark);font-weight:500}
 .legal-footer-nav{display:flex;gap:12px;flex-wrap:wrap;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}
@@ -1062,7 +1062,7 @@ footer{background:var(--dark);padding:4rem 2rem 2rem}
 
     <h2>Paiement</h2>
     <h3>Comment se passe le paiement ?</h3>
-    <p>Le paiement se fait <strong>directement entre vous et l'expert</strong>, selon les modalités que vous convenez ensemble (espèces, virement, etc.). Allo Braise ne perçoit, ne détient ni ne transfère aucun fonds — voir nos <a href="#cgu" onclick="showLegal('cgu')" style="color:var(--fire)">CGU</a>.</p>
+    <p>Le paiement se fait <strong>directement entre vous et l'expert</strong>, selon les modalités que vous convenez ensemble (espèces, virement, etc.). Allo Braise ne perçoit, ne détient ni ne transfère aucun fonds — voir nos <a href="#cgu" onclick="showLegal('cgu')" style="color:var(--fire-text);text-decoration:underline">CGU</a>.</p>
     <h3>Faut-il verser un acompte ?</h3>
     <p>C'est à convenir librement avec l'expert au moment de la réservation. Nous recommandons de toujours clarifier les conditions (acompte, annulation) par écrit dans la conversation avant le jour J.</p>
 
@@ -4338,6 +4338,36 @@ async function submitAnnonce() {
   function boot(){ setTimeout(function(){ restore(0); }, 50); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+})();
+</script>
+<script>
+/* MONITORING ERREURS PROD (Sentry-lite maison) : capture les erreurs JS
+   réelles des visiteurs dans la table `client_errors` (insert-only via RLS,
+   illisible par l'API publique). Best-effort : ne doit JAMAIS casser le site.
+   Throttle : max 5 envois par chargement de page. */
+(function(){
+  'use strict';
+  var sent=0;
+  function report(msg, src, line){
+    try{
+      if(sent>=5 || typeof sb==='undefined' || !sb || !sb.from) return;
+      sent++;
+      sb.from('client_errors').insert({
+        message:String(msg||'').slice(0,500),
+        source:String(src||'').slice(0,300),
+        ligne:parseInt(line)||null,
+        url:String(location.hash||'/').slice(0,300),
+        ua:String(navigator.userAgent||'').slice(0,300)
+      }).then(function(){},function(){});
+    }catch(e){}
+  }
+  window.addEventListener('error', function(ev){
+    report(ev.message, ev.filename, ev.lineno);
+  });
+  window.addEventListener('unhandledrejection', function(ev){
+    var r=ev && ev.reason;
+    report('unhandledrejection: '+(r && (r.message||String(r)) || '?'), '', null);
+  });
 })();
 </script>
 <script>
