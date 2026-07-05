@@ -19,6 +19,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.61.1",
     "chrome-launcher": "^1.2.1",
     "eslint": "^10.6.0",
@@ -26,6 +27,6 @@
     "husky": "^9.1.7",
     "lighthouse": "^13.4.0",
     "lint-staged": "^17.0.8",
-    "prettier": "^3.8.5"
+    "prettier": "^3.9.4"
   }
 }
