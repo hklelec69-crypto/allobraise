@@ -10,3 +10,4 @@ config.local.json
 playwright-report/
 test-results/
 lighthouse-report.html
+.lighthouseci/

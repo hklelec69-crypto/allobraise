@@ -10,9 +10,9 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -37,8 +37,27 @@ jobs:
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # Budgets de performance : échoue si un score Lighthouse régresse sous le
+  # seuil (perf mesurée à 83 → seuil 75 pour absorber la variance CI ;
+  # a11y exigée à 100 — gardée par axe-core aussi).
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lighthouse CI (budgets)
+        run: npx lhci autorun
