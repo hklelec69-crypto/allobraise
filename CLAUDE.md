@@ -192,13 +192,26 @@ interne ; routage messagerie par email (`abConvId`) ; profils **démo** (sans
 ## 9. Points ouverts (nécessitent une action de l'utilisateur, pas du code)
 
 - 🔴 **Recruter de vrais pitmasters** — la marketplace est quasi vide.
+- 🔴 **Rattacher le domaine officiel au projet Pages** — diagnostic (audit prod
+  2026-07-09) : `xn--allbraise-i7a.fr` est bien dans une zone Cloudflare (DNS
+  actif, proxy orange) mais renvoie **521/525** (origine morte) — il n'est PAS
+  déclaré comme _custom domain_ du projet Pages. Procédure : Dashboard →
+  Workers & Pages → allobraise → **Custom domains → Add** → `xn--allbraise-i7a.fr`
+  (+ `www`). ⚠️ Tant que ce n'est pas fait, le `canonical` et l'`og:image` du
+  site pointent vers un hôte en erreur (partages sociaux avec image cassée).
+  Ensuite : retirer le doublon Netlify.
+- 🔴 **Créer l'email de contact** — `contact@allobraise.fr` (11 occurrences dans
+  les pages légales, dont canal de signalement LCEN et contact RGPD) est
+  **mort** (domaine sans accent = NXDOMAIN). Créer
+  `contact@xn--allbraise-i7a.fr` via Cloudflare **Email Routing** (gratuit,
+  zone déjà chez Cloudflare) → transfert vers la boîte réelle. Puis demander à
+  Claude de remplacer les 11 occurrences.
 - 🟠 **Supabase** : activer « Leaked Password Protection » (Dashboard → Auth →
   Password Security).
-- 🟠 **Brancher `allôbraise.fr` sur Cloudflare** puis **retirer le doublon
-  Netlify**.
-- 🟡 **Email de contact** : les pages légales affichent `contact@allobraise.fr`,
-  domaine non possédé → adresse **non fonctionnelle** à remplacer ou à créer.
 - 🟡 **Google Search Console** : déclarer le site + soumettre le sitemap.
+- 🟡 **Statut juridique** : les mentions légales assument « non immatriculé,
+  activité 100 % gratuite » — défendable en pré-lancement, à trancher avant
+  toute communication commerciale officielle.
 
 > Mettre ce fichier à jour quand une de ces décisions est tranchée ou qu'une
 > convention évolue.

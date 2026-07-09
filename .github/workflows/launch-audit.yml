@@ -1,0 +1,44 @@
+# Audit de lancement (manuel) : vérifie ce que la PROD sert réellement —
+# domaine officiel vs pages.dev, en-têtes de sécurité, assets, 404.
+# À lancer avant toute bascule officielle : Actions → Launch audit → Run.
+name: Launch audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Contenu identique entre pages.dev et le domaine officiel ?
+        run: |
+          a=$(curl -s --max-time 20 https://allobraise.pages.dev/ | sha256sum | cut -d' ' -f1)
+          b=$(curl -s --max-time 20 https://xn--allbraise-i7a.fr/ | sha256sum | cut -d' ' -f1) || b=ERREUR
+          echo "pages.dev : $a"
+          echo "officiel  : $b"
+          if [ "$a" = "$b" ]; then echo "✅ MEME CONTENU — le domaine officiel sert bien le site";
+          else echo "::warning::CONTENUS DIFFERENTS — le domaine officiel ne sert PAS (encore) ce site"; fi
+
+      - name: En-têtes de sécurité servis (pages.dev)
+        run: |
+          curl -sI --max-time 20 https://allobraise.pages.dev/ | grep -iE 'content-security-policy|strict-transport|x-content-type|referrer-policy|cache-control' || true
+
+      - name: En-têtes du domaine officiel
+        run: |
+          curl -sI --max-time 20 https://xn--allbraise-i7a.fr/ | head -20 || echo "::warning::domaine officiel injoignable"
+
+      - name: Assets clés (les 2 hôtes)
+        run: |
+          for host in allobraise.pages.dev xn--allbraise-i7a.fr; do
+            echo "── $host"
+            for p in / /sw.js /manifest.webmanifest /robots.txt /sitemap.xml /404.html /og-image.png /fonts/fonts.css /icons/icon-512.png; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "https://$host$p") || code=ERR
+              echo "  $p -> $code"
+            done
+          done
+
+      - name: Page inexistante -> 404 de marque ?
+        run: |
+          code=$(curl -s -o /tmp/nf.html -w "%{http_code}" --max-time 20 https://allobraise.pages.dev/nexiste-pas)
+          echo "HTTP $code"
+          grep -qi "allo braise" /tmp/nf.html && echo "✅ 404 de marque servie" || echo "::warning::404 générique"
