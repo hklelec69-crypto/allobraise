@@ -1,0 +1,75 @@
+# Workflow one-shot (branche ci/domain-setup, ne pas merger sur main) :
+# rattache le domaine officiel au projet Pages via l'API Cloudflare, aligne
+# les DNS, puis publie un resume SANS SECRET sur la branche
+# ci/domain-setup-result pour lecture externe.
+name: Domain setup
+on:
+  push:
+    branches: [ci/domain-setup]
+permissions:
+  contents: write
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rattacher le domaine et aligner les DNS
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -u
+          ZONE="xn--allbraise-i7a.fr"
+          TARGET="allobraise.pages.dev"
+          api() { curl -s -X "$1" "https://api.cloudflare.com/client/v4$2" \
+                   -H "Authorization: Bearer $CF_API_TOKEN" \
+                   -H "Content-Type: application/json" \
+                   ${3:+--data "$3"}; }
+          mkdir -p /tmp/out
+
+          # 1. Ajouter les custom domains au projet Pages (apex + www)
+          for d in "$ZONE" "www.$ZONE"; do
+            api POST "/accounts/$CF_ACCOUNT_ID/pages/projects/allobraise/domains" "{\"name\":\"$d\"}" \
+              | jq --arg d "$d" '{step:("add-domain:"+$d), success, errors:[.errors[]?.message], status:(.result.status // null)}' \
+              >> /tmp/out/summary.jsonl
+          done
+
+          # 2. Aligner les DNS : apex + www doivent pointer (CNAME proxie) vers le projet Pages
+          ZONE_ID=$(api GET "/zones?name=$ZONE" | jq -r '.result[0].id // empty')
+          if [ -z "$ZONE_ID" ]; then
+            echo '{"step":"zone-lookup","success":false,"errors":["zone introuvable ou token sans acces zone"]}' >> /tmp/out/summary.jsonl
+          else
+            echo '{"step":"zone-lookup","success":true}' >> /tmp/out/summary.jsonl
+            api GET "/zones/$ZONE_ID/dns_records?per_page=100" > /tmp/out/dns.json
+            for d in "$ZONE" "www.$ZONE"; do
+              REC=$(jq -r --arg n "$d" '[.result[] | select(.name==$n and (.type=="A" or .type=="AAAA" or .type=="CNAME"))][0]' /tmp/out/dns.json)
+              REC_ID=$(echo "$REC" | jq -r '.id // empty')
+              REC_CONTENT=$(echo "$REC" | jq -r '.content // empty')
+              BODY="{\"type\":\"CNAME\",\"name\":\"$d\",\"content\":\"$TARGET\",\"proxied\":true}"
+              if [ -z "$REC_ID" ]; then
+                api POST "/zones/$ZONE_ID/dns_records" "$BODY" \
+                  | jq --arg d "$d" '{step:("dns-create:"+$d), success, errors:[.errors[]?.message]}' >> /tmp/out/summary.jsonl
+              elif [ "$REC_CONTENT" != "$TARGET" ]; then
+                api PUT "/zones/$ZONE_ID/dns_records/$REC_ID" "$BODY" \
+                  | jq --arg d "$d" --arg old "$REC_CONTENT" '{step:("dns-update:"+$d), ancien:$old, success, errors:[.errors[]?.message]}' >> /tmp/out/summary.jsonl
+              else
+                echo "{\"step\":\"dns-ok:$d\",\"success\":true}" >> /tmp/out/summary.jsonl
+              fi
+            done
+          fi
+
+          # 3. Etat final des custom domains du projet
+          api GET "/accounts/$CF_ACCOUNT_ID/pages/projects/allobraise/domains" \
+            | jq '{step:"domains-final", success, domains:[.result[]? | {name, status, validation:(.validation_data.status // null), cert:(.certificate_authority // null)}]}' \
+            >> /tmp/out/summary.jsonl
+
+          jq -s '.' /tmp/out/summary.jsonl > "$GITHUB_WORKSPACE/domain-setup-result.json"
+          cat "$GITHUB_WORKSPACE/domain-setup-result.json"
+      - name: Publier le resume (sans secret)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci/domain-setup-result
+          git add domain-setup-result.json
+          git commit -m "Resultat setup domaine officiel"
+          git push -f origin ci/domain-setup-result
