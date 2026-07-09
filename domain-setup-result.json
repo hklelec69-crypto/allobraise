@@ -1,0 +1,41 @@
+[
+  {
+    "step": "add-domain:xn--allbraise-i7a.fr",
+    "success": true,
+    "errors": [],
+    "status": "initializing"
+  },
+  {
+    "step": "add-domain:www.xn--allbraise-i7a.fr",
+    "success": false,
+    "errors": [
+      "You have already added this custom domain. Select another custom domain or check your project configuration."
+    ],
+    "status": null
+  },
+  {
+    "step": "zone-lookup",
+    "success": false,
+    "errors": [
+      "zone introuvable ou token sans acces zone"
+    ]
+  },
+  {
+    "step": "domains-final",
+    "success": true,
+    "domains": [
+      {
+        "name": "www.xn--allbraise-i7a.fr",
+        "status": "active",
+        "validation": "active",
+        "cert": "google"
+      },
+      {
+        "name": "xn--allbraise-i7a.fr",
+        "status": "initializing",
+        "validation": "initializing",
+        "cert": "google"
+      }
+    ]
+  }
+]
