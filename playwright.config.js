@@ -24,6 +24,10 @@ function findChromium() {
 const PORT = 4173;
 const executablePath = findChromium();
 
+// `python3` n'existe pas sous Windows (alias Microsoft Store piégé) : on
+// bascule sur `python` pour permettre de lancer les E2E en local.
+const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+
 module.exports = defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -48,7 +52,7 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: `python3 -m http.server ${PORT}`,
+    command: `${pythonCmd} -m http.server ${PORT}`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
