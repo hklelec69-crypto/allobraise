@@ -192,20 +192,18 @@ interne ; routage messagerie par email (`abConvId`) ; profils **démo** (sans
 ## 9. Points ouverts (nécessitent une action de l'utilisateur, pas du code)
 
 - 🔴 **Recruter de vrais pitmasters** — la marketplace est quasi vide.
-- 🔴 **Rattacher le domaine officiel au projet Pages** — diagnostic (audit prod
-  2026-07-09) : `xn--allbraise-i7a.fr` est bien dans une zone Cloudflare (DNS
-  actif, proxy orange) mais renvoie **521/525** (origine morte) — il n'est PAS
-  déclaré comme _custom domain_ du projet Pages. Procédure : Dashboard →
-  Workers & Pages → allobraise → **Custom domains → Add** → `xn--allbraise-i7a.fr`
-  (+ `www`). ⚠️ Tant que ce n'est pas fait, le `canonical` et l'`og:image` du
-  site pointent vers un hôte en erreur (partages sociaux avec image cassée).
-  Ensuite : retirer le doublon Netlify.
+- ✅ **Domaine officiel rattaché** (2026-07-09) : apex + `www` sont _custom
+  domains_ du projet Pages ; l'ancien A apex (parking OVH mort, 213.186.33.5)
+  a été remplacé par un CNAME proxié vers `allobraise.pages.dev`. Les deux
+  hôtes répondent 200 en HTTPS. Reste : **retirer le doublon Netlify**.
 - 🔴 **Créer l'email de contact** — `contact@allobraise.fr` (11 occurrences dans
   les pages légales, dont canal de signalement LCEN et contact RGPD) est
   **mort** (domaine sans accent = NXDOMAIN). Créer
   `contact@xn--allbraise-i7a.fr` via Cloudflare **Email Routing** (gratuit,
   zone déjà chez Cloudflare) → transfert vers la boîte réelle. Puis demander à
-  Claude de remplacer les 11 occurrences.
+  Claude de remplacer les 11 occurrences. ⚠️ La zone porte encore des **MX
+  OVH** (`mx1-3.mail.ovh.net` + SPF `include:mx.ovh.com`) : vérifier si une
+  boîte OVH existe encore avant de basculer les MX vers Email Routing.
 - 🟠 **Supabase** : activer « Leaked Password Protection » (Dashboard → Auth →
   Password Security).
 - 🟡 **Google Search Console** : déclarer le site + soumettre le sitemap.
